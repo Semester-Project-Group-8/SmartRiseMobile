@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "myApp2",
+    "slug": "myApp2",
+    "version": "1.0.0",
+    "plugins": [
+      "expo-status-bar"
+    ],
+    "android": {
+      "package": "com.anonymous.myApp2"
+    }
+  }
+}
