@@ -1,20 +1,28 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { View, Button } from 'react-native';
+import LoginScreen from './src/screens/LoginScreen';
+import UserScreen from './src/screens/UserScreen';
+import AdminScreen from './src/screens/AdminScreen';
+import CleanerScreen from './src/screens/CleanerScreen';
 
 export default function App() {
+  const [screen, setScreen] = useState('login');
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
+        {screen === 'login' && <LoginScreen />}
+        {screen === 'user' && <UserScreen />}
+        {screen === 'admin' && <AdminScreen />}
+        {screen === 'cleaner' && <CleanerScreen />}
+      </View>
+
+      <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingBottom: 30,marginBottom:50, }}>
+        <Button title="Login" onPress={() => setScreen('login')} />
+        <Button title="User" onPress={() => setScreen('user')} />
+        <Button title="Admin" onPress={() => setScreen('admin')} />
+        <Button title="Cleaner" onPress={() => setScreen('cleaner')} />
+      </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
