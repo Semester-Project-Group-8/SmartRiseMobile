@@ -37,3 +37,7 @@ expoAutolinking.useExpoVersionCatalog()
 
 include ':app'
 includeBuild(expoAutolinking.reactNativeGradlePlugin)
+
+// Local background iBeacon Android library
+include ':ibeacon'
+project(':ibeacon').projectDir = new File(rootProject.projectDir, 'ibeacon')
