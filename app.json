@@ -1,10 +1,11 @@
 {
   "expo": {
-    "name": "myApp2",
-    "slug": "myApp2",
+    "name": "SmartRise",
+    "slug": "SmartRise",
     "version": "1.0.0",
     "plugins": [
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-secure-store"
     ],
     "android": {
       "package": "com.anonymous.myApp2"
