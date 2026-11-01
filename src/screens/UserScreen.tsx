@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { View, Text, TextInput, Pressable } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { userStyles } from '../styles/UserScreenStyle';
 
 function Header() {
@@ -16,12 +15,20 @@ function Header() {
     );
 }
 
-export default function UserScreen() {
-
+export default function UserScreen({
+    packageDetected,
+    scannerError,
+}: {
+    packageDetected: boolean;
+    scannerError?: string;
+}) {
     return (
         <View style={userStyles.container}>
             <Header></Header>
-            <YourDesk></YourDesk>
+            <YourDesk
+                packageDetected={packageDetected}
+                scannerError={scannerError}
+            ></YourDesk>
             <Text style={userStyles.PressetTextHeader}>Presets</Text>
             <Presset></Presset>
             <Profile></Profile>
@@ -31,17 +38,26 @@ export default function UserScreen() {
 
 }
 
-function YourDesk() {
+function YourDesk({
+    packageDetected,
+    scannerError,
+}: {
+    packageDetected: boolean;
+    scannerError?: string;
+}) {
     return (
         <View style={userStyles.DeskView}>
             <View style={userStyles.deskHeader}>
                 <Text style={userStyles.CurrentDesk}>Your current desk</Text>
                 <View style={userStyles.ButtonConnect}>
-                    <Text style={userStyles.connectText}>Connected</Text>
+                    <Text style={userStyles.connectText}>
+                        {scannerError ? 'Scanner error' : packageDetected ? 'Package detected' : 'Searching'}
+                    </Text>
                 </View>
             </View>
             <Text style={userStyles.DeskNumberText}>Desk number: 4</Text>
             <Text style={userStyles.CurrentHeightText}>Current Height: 70cm</Text>
+            {scannerError && <Text>{scannerError}</Text>}
         </View>
     );
 }

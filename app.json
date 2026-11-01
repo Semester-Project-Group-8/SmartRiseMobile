@@ -6,6 +6,15 @@
     "plugins": [
       "expo-status-bar"
     ],
+    "ios": {
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "SmartRise uses your location while the app is open to detect the Pico W iBeacon.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "SmartRise monitors the Pico W iBeacon in the background so it can detect when you are near your desk.",
+        "UIBackgroundModes": [
+          "location"
+        ]
+      }
+    },
     "android": {
       "package": "com.anonymous.myApp2"
     }
