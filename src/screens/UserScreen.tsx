@@ -1,14 +1,16 @@
-import { useState } from "react";
 import { View, Text, TextInput, Pressable } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { userStyles } from '../styles/UserScreenStyle';
 import { useAuth } from '../context/AuthContext';
+import { usePresets } from '../context/PressetsContext';
 function Header() {
+    const navigation = useNavigation<any>();
     return (
         <View style={userStyles.header}>
             <Text style={userStyles.title}>Welcome Back {'\n'} User Name</Text>
             <Pressable
                 style={userStyles.profileIcon}
-                onPress={() => console.log('Profile')}
+                onPress={() => navigation.navigate('UserProfile')}
                 accessibilityLabel="Profile">
                 <Text style={userStyles.profileLetter}>U</Text>
             </Pressable>
@@ -50,27 +52,27 @@ function YourDesk() {
 }
 
 function Presset() {
+    const { sit: savedSit, stand: savedStand } = usePresets();
     return (
         <View style={userStyles.PressetView}>
             <Pressable style={userStyles.Presset}>
                 <Text style={userStyles.PressetText}>Sit</Text>
-                <Text style={userStyles.PressetSubText}>70cm</Text>
+                <Text style={userStyles.PressetSubText}>{savedSit} cm</Text>
             </Pressable>
             <Pressable style={userStyles.Presset}>
                 <Text style={userStyles.PressetText}>Stand</Text>
-                <Text style={userStyles.PressetSubText}>110cm</Text>
+                <Text style={userStyles.PressetSubText}>{savedStand}cm</Text>
             </Pressable>
         </View>
     );
 }
 
 function Profile() {
+    const navigation = useNavigation<any>();
     return (
         <View style={userStyles.ProfileView}>
-            <Pressable style={userStyles.Profile}>
-                <Text>Edit Profile</Text>
-            </Pressable>
-            <Pressable style={userStyles.Profile}>
+            <Pressable style={userStyles.Profile } onPress={() => navigation.navigate('Information')}
+                accessibilityLabel="Information">
                 <Text>Info</Text>
             </Pressable>
         </View>
