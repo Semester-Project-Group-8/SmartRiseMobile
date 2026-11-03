@@ -1,5 +1,7 @@
 import { View, Text, Pressable } from "react-native";
 import { cleanerStyles } from "../styles/CleanerScreenStyle";
+import { setAllDeskHeights } from "../services/api";
+
 
 function Header() {
   return (
@@ -16,7 +18,7 @@ export default function CleanerScreen() {
   return (
     <View style={cleanerStyles.container}>
       <Header></Header>
-      <Pressable style={cleanerStyles.button} onPress={() => console.log('Login pressed')}>
+      <Pressable style={cleanerStyles.button} onPress={() => {setAllDeskHeights(140)}}>
         <Text style={cleanerStyles.buttonText}>Lift up all tables</Text>
       </Pressable>
       <Footer></Footer>
