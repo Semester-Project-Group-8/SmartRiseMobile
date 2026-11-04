@@ -39,4 +39,11 @@ export const loginStyles = StyleSheet.create({
     color: '#888',
     textAlign: 'center',
   },
+
+  errorText: {
+    color: '#b91c1c',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 10,
+  }
 });

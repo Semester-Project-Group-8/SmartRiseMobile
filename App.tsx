@@ -1,28 +1,98 @@
-import { useState } from 'react';
-import { View, Button } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from './src/screens/LoginScreen';
 import UserScreen from './src/screens/UserScreen';
 import AdminScreen from './src/screens/AdminScreen';
 import CleanerScreen from './src/screens/CleanerScreen';
+import UserProfileScreen from './src/screens/UserProfileScreen';
+import UserProfileInformation from './src/screens/UserProfileInformationScreen';
+import AllDesks from './src/screens/AdminAllDesksScreen';
+import Reported from './src/screens/AdminReportedScreen';
+import NewUsers from './src/screens/AdminNewUsersScreen';
+import AdminProfile from './src/screens/AdminProfileScreen';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { PresetsProvider } from './src/context/PresetsContext';
 
-export default function App() {
-  const [screen, setScreen] = useState('login');
+const Stack = createNativeStackNavigator();
+
+function RootNavigator() {
+  const { user, isLoading } = useAuth();
+
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+
+  let screen;
+  if (!user) {
+    screen = <Stack.Screen name="Login" component={LoginScreen} />;
+  } else if (user.role === 'Admin') {
+    screen = (
+      <>
+        <Stack.Screen name="Admin" component={AdminScreen} />
+        <Stack.Screen
+          name="AdminProfile"
+          component={AdminProfile}
+          options={{ headerShown: true, title: 'Profile' }}
+        />
+        <Stack.Screen
+          name="Reported"
+          component={Reported}
+          options={{ headerShown: true, title: 'Reported Issues' }}
+        />
+        <Stack.Screen
+          name="New Users"
+          component={NewUsers}
+          options={{ headerShown: true, title: 'New Users Requests' }}
+        />
+        <Stack.Screen
+          name="All Desks"
+          component={AllDesks}
+          options={{ headerShown: true, title: 'All Desks' }}
+        />
+      </>
+    );
+  } else if (user.role === 'Cleaner') {
+    screen = <Stack.Screen name="Cleaner" component={CleanerScreen} />;
+  } else {
+    screen = (
+      <>
+        <Stack.Screen name="User" component={UserScreen} />
+        <Stack.Screen
+          name="UserProfile"
+          component={UserProfileScreen}
+          options={{ headerShown: true, title: 'Profile' }}
+        />
+        <Stack.Screen
+          name="Information"
+          component={UserProfileInformation}
+          options={{ headerShown: true, title: 'Information' }}
+        />
+      </>
+    );
+  }
 
   return (
-    <View style={{ flex: 1 }}>
-      <View style={{ flex: 1 }}>
-        {screen === 'login' && <LoginScreen />}
-        {screen === 'user' && <UserScreen />}
-        {screen === 'admin' && <AdminScreen />}
-        {screen === 'cleaner' && <CleanerScreen />}
-      </View>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {screen}
+    </Stack.Navigator>
+  );
+}
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingBottom: 30,marginBottom:50, }}>
-        <Button title="Login" onPress={() => setScreen('login')} />
-        <Button title="User" onPress={() => setScreen('user')} />
-        <Button title="Admin" onPress={() => setScreen('admin')} />
-        <Button title="Cleaner" onPress={() => setScreen('cleaner')} />
-      </View>
-    </View>
+export default function App() {
+  return (
+    <AuthProvider>
+      <PresetsProvider>
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
+      </PresetsProvider>
+    </AuthProvider>
   );
 }

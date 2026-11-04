@@ -3,6 +3,7 @@ import { cleanerStyles } from "../styles/CleanerScreenStyle";
 import { setAllDeskHeights } from "../services/api";
 
 
+import { useAuth } from '../context/AuthContext';
 function Header() {
   return (
     <View style={cleanerStyles.header}>
@@ -15,11 +16,15 @@ function Header() {
 }
 
 export default function CleanerScreen() {
+  const { logout } = useAuth();
   return (
     <View style={cleanerStyles.container}>
       <Header></Header>
       <Pressable style={cleanerStyles.button} onPress={() => {setAllDeskHeights(140)}}>
         <Text style={cleanerStyles.buttonText}>Lift up all tables</Text>
+      </Pressable>
+      <Pressable onPress={logout} style={{ padding: 16, alignItems: 'center' }}>
+        <Text style={{ color: '#b91c1c', fontWeight: '600' }}>Log out</Text>
       </Pressable>
       <Footer></Footer>
     </View>
