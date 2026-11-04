@@ -1,7 +1,7 @@
 import { View, Text, Pressable } from 'react-native';
 import { useState } from "react";
 import { UserProfileScreenStyle } from '../styles/UserProfileScreenStyle';
-import { usePresets } from '../context/PressetsContext';
+import { usePresets } from '../context/PresetsContext';
 export default function UserProfileScreen() {
     return (
         <View>

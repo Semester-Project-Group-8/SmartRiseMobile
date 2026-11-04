@@ -2,7 +2,7 @@ import { View, Text, TextInput, Pressable } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { userStyles } from '../styles/UserScreenStyle';
 import { useAuth } from '../context/AuthContext';
-import { usePresets } from '../context/PressetsContext';
+import { usePresets } from '../context/PresetsContext';
 function Header() {
     const navigation = useNavigation<any>();
     return (
@@ -24,8 +24,8 @@ export default function UserScreen() {
         <View style={userStyles.container}>
             <Header></Header>
             <YourDesk></YourDesk>
-            <Text style={userStyles.PressetTextHeader}>Presets</Text>
-            <Presset></Presset>
+            <Text style={userStyles.PresetTextHeader}>Presets</Text>
+            <Preset></Preset>
             <Profile></Profile>
             <Pressable onPress={logout} style={{ padding: 16, alignItems: 'center' }}>
                 <Text style={{ color: '#b91c1c', fontWeight: '600' }}>Log out</Text>
@@ -51,17 +51,17 @@ function YourDesk() {
     );
 }
 
-function Presset() {
+function Preset() {
     const { sit: savedSit, stand: savedStand } = usePresets();
     return (
-        <View style={userStyles.PressetView}>
-            <Pressable style={userStyles.Presset}>
-                <Text style={userStyles.PressetText}>Sit</Text>
-                <Text style={userStyles.PressetSubText}>{savedSit} cm</Text>
+        <View style={userStyles.PresetView}>
+            <Pressable style={userStyles.Preset}>
+                <Text style={userStyles.PresetText}>Sit</Text>
+                <Text style={userStyles.PresetSubText}>{savedSit} cm</Text>
             </Pressable>
-            <Pressable style={userStyles.Presset}>
-                <Text style={userStyles.PressetText}>Stand</Text>
-                <Text style={userStyles.PressetSubText}>{savedStand}cm</Text>
+            <Pressable style={userStyles.Preset}>
+                <Text style={userStyles.PresetText}>Stand</Text>
+                <Text style={userStyles.PresetSubText}>{savedStand}cm</Text>
             </Pressable>
         </View>
     );

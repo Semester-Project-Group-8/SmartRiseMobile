@@ -12,7 +12,7 @@ import Reported from './src/screens/AdminReportedScreen';
 import NewUsers from './src/screens/AdminNewUsersScreen';
 import AdminProfile from './src/screens/AdminProfileScreen';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
-import { PresetsProvider } from './src/context/PressetsContext';
+import { PresetsProvider } from './src/context/PresetsContext';
 
 const Stack = createNativeStackNavigator();
 
