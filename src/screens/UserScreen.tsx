@@ -1,6 +1,10 @@
 import { View, Text, TextInput, Pressable } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { userStyles } from '../styles/UserScreenStyle';
+import { getDeskById, getUserById } from "../services/api";
+import type { Desk } from "../types/desk";
+import type { User } from "../types/user";
+
 import { useAuth } from '../context/AuthContext';
 import { usePresets } from '../context/PresetsContext';
 function Header() {
@@ -20,12 +24,19 @@ function Header() {
 
 export default function UserScreen() {
     const { logout } = useAuth();
+    const deskId = 'desk-002';
+    const userId = 'user-002';
+
+    const desk = getDeskById(deskId);
+    const user = getUserById(userId);
+
+
     return (
         <View style={userStyles.container}>
             <Header></Header>
-            <YourDesk></YourDesk>
-            <Text style={userStyles.PresetTextHeader}>Presets</Text>
-            <Preset></Preset>
+            <YourDesk desk={desk}></YourDesk>
+            <Text style={userStyles.PressetTextHeader}>Presets</Text>
+            {user ? <Presset user={user} /> : <Text>User not found.</Text>}
             <Profile></Profile>
             <Pressable onPress={logout} style={{ padding: 16, alignItems: 'center' }}>
                 <Text style={{ color: '#b91c1c', fontWeight: '600' }}>Log out</Text>
@@ -36,17 +47,27 @@ export default function UserScreen() {
 
 }
 
-function YourDesk() {
+function YourDesk({desk}: {desk: Desk | undefined;}) {
+    if (!desk) {
+        return <Text>Desk not found.</Text>;
+    }
+
     return (
         <View style={userStyles.DeskView}>
             <View style={userStyles.deskHeader}>
                 <Text style={userStyles.CurrentDesk}>Your current desk</Text>
                 <View style={userStyles.ButtonConnect}>
-                    <Text style={userStyles.connectText}>Connected</Text>
+                    <Text style={userStyles.connectText}>
+                        {desk.isConnected ? 'Connected' : 'Disconnected'}
+                    </Text>
                 </View>
             </View>
-            <Text style={userStyles.DeskNumberText}>Desk number: 4</Text>
-            <Text style={userStyles.CurrentHeightText}>Current Height: 70cm</Text>
+            <Text style={userStyles.DeskNumberText}>
+                Desk number: {desk.deskNum}
+            </Text>
+            <Text style={userStyles.CurrentHeightText}>
+                Current Height: {desk.currentHeight}cm
+            </Text>
         </View>
     );
 }
