@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { User } from '../services/LoginAuth';
-import { Login } from '../services/LoginAuth';
+import { User, Login } from '../services/LoginAuth';
 import * as SecureStore from 'expo-secure-store';
 type AuthContextType = {
     user: User | null;

@@ -29,19 +29,19 @@ function Account() {
             <View style={UserProfileScreenStyle.Table}>
                 <View style={UserProfileScreenStyle.Row}>
                     <Text>Name</Text>
-                    <Text>User's Name</Text>
+                    <Text>User&apos;s Name</Text>
                 </View>
                 <View style={UserProfileScreenStyle.Row}>
                     <Text>Preffered Desk</Text>
-                    <Text>User's PD</Text>
+                    <Text>User&apos;s PD</Text>
                 </View>
                 <View style={UserProfileScreenStyle.Row}>
                     <Text>Height</Text>
-                    <Text>User's Height</Text>
+                    <Text>User&apos;s Height</Text>
                 </View>
                 <View style={UserProfileScreenStyle.RowBottom}>
                     <Text>Date Of Birth</Text>
-                    <Text>User's DOB</Text>
+                    <Text>User&apos;s DOB</Text>
                 </View>
             </View>
         </View>

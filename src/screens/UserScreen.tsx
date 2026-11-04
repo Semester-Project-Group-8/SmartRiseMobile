@@ -1,9 +1,8 @@
-import { View, Text, TextInput, Pressable } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { userStyles } from '../styles/UserScreenStyle';
 import { getDeskById, getUserById } from "../services/api";
 import type { Desk } from "../types/desk";
-import type { User } from "../types/user";
 
 import { useAuth } from '../context/AuthContext';
 import { usePresets } from '../context/PresetsContext';
@@ -35,8 +34,8 @@ export default function UserScreen() {
         <View style={userStyles.container}>
             <Header></Header>
             <YourDesk desk={desk}></YourDesk>
-            <Text style={userStyles.PressetTextHeader}>Presets</Text>
-            {user ? <Presset user={user} /> : <Text>User not found.</Text>}
+            <Text style={userStyles.PresetTextHeader}>Presets</Text>
+            {user ? <Preset /> : <Text>User not found.</Text>}
             <Profile></Profile>
             <Pressable onPress={logout} style={{ padding: 16, alignItems: 'center' }}>
                 <Text style={{ color: '#b91c1c', fontWeight: '600' }}>Log out</Text>
