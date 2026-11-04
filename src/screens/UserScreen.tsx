@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { View, Text, TextInput, Pressable } from "react-native";
 import { userStyles } from '../styles/UserScreenStyle';
-
+import { useAuth } from '../context/AuthContext';
 function Header() {
     return (
         <View style={userStyles.header}>
@@ -17,7 +17,7 @@ function Header() {
 }
 
 export default function UserScreen() {
-
+    const { logout } = useAuth();
     return (
         <View style={userStyles.container}>
             <Header></Header>
@@ -25,6 +25,9 @@ export default function UserScreen() {
             <Text style={userStyles.PressetTextHeader}>Presets</Text>
             <Presset></Presset>
             <Profile></Profile>
+            <Pressable onPress={logout} style={{ padding: 16, alignItems: 'center' }}>
+                <Text style={{ color: '#b91c1c', fontWeight: '600' }}>Log out</Text>
+            </Pressable>
         </View>
 
     );

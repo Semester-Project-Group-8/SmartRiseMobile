@@ -1,6 +1,6 @@
 import { View, Text, Pressable } from "react-native";
 import { adminStyles } from '../styles/AdminScreenStyle';
-
+import { useAuth } from '../context/AuthContext';
 function Header() {
   return (
     <View style={adminStyles.header}>
@@ -67,6 +67,7 @@ function ManageButtons() {
 }
 
 export default function AdminScreen() {
+  const { logout } = useAuth();
   return (
     <View style={adminStyles.container}>
       <Header />
@@ -78,8 +79,8 @@ export default function AdminScreen() {
         <Text style={adminStyles.liftText}>Lift all tables</Text>
       </Pressable>
 
-      <Pressable style={adminStyles.logoutButton} onPress={() => console.log('Log out')}>
-        <Text style={adminStyles.logoutText}>Log out</Text>
+      <Pressable onPress={logout} style={{ padding: 16, alignItems: 'center' }}>
+        <Text style={{ color: '#b91c1c', fontWeight: '600' }}>Log out</Text>
       </Pressable>
     </View>
   );
