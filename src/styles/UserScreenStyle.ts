@@ -90,14 +90,14 @@ export const userStyles = StyleSheet.create({
         color: '#2563eb'
     },
 
-    PressetView: {
+    PresetView: {
         flexDirection: 'row',
         gap: 12,
         marginTop: 20,
         marginBottom: 12,
     },
 
-    Presset: {
+    Preset: {
         flex: 1,
         height: 120,
         borderWidth: 1,
@@ -108,17 +108,17 @@ export const userStyles = StyleSheet.create({
         alignItems: 'center',
     },
 
-    PressetText: {
+    PresetText: {
         fontSize: 20,
         fontWeight: '600',
 
     },
-    PressetSubText: {
+    PresetSubText: {
         fontSize: 14,
         color: '#666',
         marginTop: 4,
     },
-    PressetTextHeader: {
+    PresetTextHeader: {
         fontSize: 20,
         fontWeight: '600',
         paddingTop: 15,

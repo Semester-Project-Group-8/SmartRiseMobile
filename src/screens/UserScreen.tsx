@@ -1,14 +1,16 @@
-import { useState } from "react";
 import { View, Text, TextInput, Pressable } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { userStyles } from '../styles/UserScreenStyle';
 import { useAuth } from '../context/AuthContext';
+import { usePresets } from '../context/PresetsContext';
 function Header() {
+    const navigation = useNavigation<any>();
     return (
         <View style={userStyles.header}>
             <Text style={userStyles.title}>Welcome Back {'\n'} User Name</Text>
             <Pressable
                 style={userStyles.profileIcon}
-                onPress={() => console.log('Profile')}
+                onPress={() => navigation.navigate('UserProfile')}
                 accessibilityLabel="Profile">
                 <Text style={userStyles.profileLetter}>U</Text>
             </Pressable>
@@ -22,8 +24,8 @@ export default function UserScreen() {
         <View style={userStyles.container}>
             <Header></Header>
             <YourDesk></YourDesk>
-            <Text style={userStyles.PressetTextHeader}>Presets</Text>
-            <Presset></Presset>
+            <Text style={userStyles.PresetTextHeader}>Presets</Text>
+            <Preset></Preset>
             <Profile></Profile>
             <Pressable onPress={logout} style={{ padding: 16, alignItems: 'center' }}>
                 <Text style={{ color: '#b91c1c', fontWeight: '600' }}>Log out</Text>
@@ -49,28 +51,28 @@ function YourDesk() {
     );
 }
 
-function Presset() {
+function Preset() {
+    const { sit: savedSit, stand: savedStand } = usePresets();
     return (
-        <View style={userStyles.PressetView}>
-            <Pressable style={userStyles.Presset}>
-                <Text style={userStyles.PressetText}>Sit</Text>
-                <Text style={userStyles.PressetSubText}>70cm</Text>
+        <View style={userStyles.PresetView}>
+            <Pressable style={userStyles.Preset}>
+                <Text style={userStyles.PresetText}>Sit</Text>
+                <Text style={userStyles.PresetSubText}>{savedSit} cm</Text>
             </Pressable>
-            <Pressable style={userStyles.Presset}>
-                <Text style={userStyles.PressetText}>Stand</Text>
-                <Text style={userStyles.PressetSubText}>110cm</Text>
+            <Pressable style={userStyles.Preset}>
+                <Text style={userStyles.PresetText}>Stand</Text>
+                <Text style={userStyles.PresetSubText}>{savedStand}cm</Text>
             </Pressable>
         </View>
     );
 }
 
 function Profile() {
+    const navigation = useNavigation<any>();
     return (
         <View style={userStyles.ProfileView}>
-            <Pressable style={userStyles.Profile}>
-                <Text>Edit Profile</Text>
-            </Pressable>
-            <Pressable style={userStyles.Profile}>
+            <Pressable style={userStyles.Profile } onPress={() => navigation.navigate('Information')}
+                accessibilityLabel="Information">
                 <Text>Info</Text>
             </Pressable>
         </View>

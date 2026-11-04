@@ -44,6 +44,7 @@ export const adminStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
+    backgroundColor: '#fff',
     padding: 12,
   },
   summaryNumber: {
@@ -71,6 +72,7 @@ export const adminStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
   },

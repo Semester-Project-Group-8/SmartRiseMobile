@@ -5,7 +5,14 @@ import LoginScreen from './src/screens/LoginScreen';
 import UserScreen from './src/screens/UserScreen';
 import AdminScreen from './src/screens/AdminScreen';
 import CleanerScreen from './src/screens/CleanerScreen';
+import UserProfileScreen from './src/screens/UserProfileScreen';
+import UserProfileInformation from './src/screens/UserProfileInformationScreen';
+import AllDesks from './src/screens/AdminAllDesksScreen';
+import Reported from './src/screens/AdminReportedScreen';
+import NewUsers from './src/screens/AdminNewUsersScreen';
+import AdminProfile from './src/screens/AdminProfileScreen';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { PresetsProvider } from './src/context/PresetsContext';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,11 +33,49 @@ function RootNavigator() {
   if (!user) {
     screen = <Stack.Screen name="Login" component={LoginScreen} />;
   } else if (user.role === 'Admin') {
-    screen = <Stack.Screen name="Admin" component={AdminScreen} />;
+    screen = (
+      <>
+        <Stack.Screen name="Admin" component={AdminScreen} />
+        <Stack.Screen
+          name="AdminProfile"
+          component={AdminProfile}
+          options={{ headerShown: true, title: 'Profile' }}
+        />
+        <Stack.Screen
+          name="Reported"
+          component={Reported}
+          options={{ headerShown: true, title: 'Reported Issues' }}
+        />
+        <Stack.Screen
+          name="New Users"
+          component={NewUsers}
+          options={{ headerShown: true, title: 'New Users Requests' }}
+        />
+        <Stack.Screen
+          name="All Desks"
+          component={AllDesks}
+          options={{ headerShown: true, title: 'All Desks' }}
+        />
+      </>
+    );
   } else if (user.role === 'Cleaner') {
     screen = <Stack.Screen name="Cleaner" component={CleanerScreen} />;
   } else {
-    screen = <Stack.Screen name="User" component={UserScreen} />;
+    screen = (
+      <>
+        <Stack.Screen name="User" component={UserScreen} />
+        <Stack.Screen
+          name="UserProfile"
+          component={UserProfileScreen}
+          options={{ headerShown: true, title: 'Profile' }}
+        />
+        <Stack.Screen
+          name="Information"
+          component={UserProfileInformation}
+          options={{ headerShown: true, title: 'Information' }}
+        />
+      </>
+    );
   }
 
   return (
@@ -43,9 +88,11 @@ function RootNavigator() {
 export default function App() {
   return (
     <AuthProvider>
-      <NavigationContainer>
-        <RootNavigator />
-      </NavigationContainer>
+      <PresetsProvider>
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
+      </PresetsProvider>
     </AuthProvider>
   );
 }
