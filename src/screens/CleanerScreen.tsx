@@ -35,7 +35,7 @@ function Footer() {
   return (
     <View style={cleanerStyles.footer}>
       <Text style={cleanerStyles.footerText}>
-        If the tables don't lift or the button isn't working, please contact your admin.
+        If the tables don&apos;t lift or the button isn&apos;t working, please contact your admin.
       </Text>
     </View>
   );

@@ -70,7 +70,7 @@ function Footer() {
   return (
     <View style={loginStyles.footer}>
       <Text style={loginStyles.footerText}>
-        If you didn't receive your login information, please contact your admin.
+        If you didn&apos;t receive your login information, please contact your admin.
       </Text>
     </View>
   );
