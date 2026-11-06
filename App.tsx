@@ -1,4 +1,5 @@
-import { View, ActivityIndicator } from 'react-native';
+import { useEffect } from 'react';
+import { View, ActivityIndicator, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from './src/screens/LoginScreen';
@@ -13,12 +14,42 @@ import NewUsers from './src/screens/AdminNewUsersScreen';
 import AdminProfile from './src/screens/AdminProfileScreen';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { PresetsProvider } from './src/context/PresetsContext';
+import { requestBluetoothPermissions } from './src/services/bluetoothPermissions';
 
 const Stack = createNativeStackNavigator();
 
 function RootNavigator() {
   const { user, isLoading } = useAuth();
 
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    let isActive = true;
+
+    requestBluetoothPermissions()
+      .then((allowed) => {
+        if (isActive && !allowed) {
+          Alert.alert(
+            'Bluetooth permission required',
+            'Allow Bluetooth access to detect the beacon.',
+          );
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          Alert.alert(
+            'Bluetooth permission error',
+            'We could not request Bluetooth access. Please try again.',
+          );
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [user]);
 
   if (isLoading) {
     return (
