@@ -20,6 +20,14 @@ import androidx.core.content.ContextCompat
 
 class BeaconScanService : Service() {
     private var scanCallback: ScanCallback? = null
+    private val trackedBeacons = mutableMapOf<String, TrackedBeacon>()
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val expireBeaconsRunnable = object : Runnable {
+        override fun run() {
+            expireBeacons()
+            handler.postDelayed(this, BEACON_LOST_TIMEOUT_MS)
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -40,6 +48,8 @@ class BeaconScanService : Service() {
 
     override fun onDestroy() {
         stopScanning()
+        handler.removeCallbacks(expireBeaconsRunnable)
+        trackedBeacons.clear()
         super.onDestroy()
     }
 
@@ -74,10 +84,7 @@ class BeaconScanService : Service() {
             .build()
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
-                Log.d(
-                    TAG,
-                    "SmartRise detected: ${result.device.address}, RSSI ${result.rssi}",
-                )
+                handleBeaconDetected(result)
             }
 
             override fun onScanFailed(errorCode: Int) {
@@ -88,6 +95,7 @@ class BeaconScanService : Service() {
         try {
             scanner.startScan(listOf(filter), settings, callback)
             scanCallback = callback
+            handler.post(expireBeaconsRunnable)
         } catch (error: SecurityException) {
             Log.e(TAG, "BLE scan permission was rejected.", error)
             stopSelf()
@@ -95,6 +103,7 @@ class BeaconScanService : Service() {
     }
 
     private fun stopScanning() {
+        handler.removeCallbacks(expireBeaconsRunnable)
         val callback = scanCallback ?: return
         if (hasBluetoothPermission()) {
             getSystemService(BluetoothManager::class.java)
@@ -103,6 +112,33 @@ class BeaconScanService : Service() {
                 ?.stopScan(callback)
         }
         scanCallback = null
+        trackedBeacons.clear()
+    }
+
+    private fun handleBeaconDetected(result: ScanResult) {
+        val address = result.device.address
+        val now = System.currentTimeMillis()
+        val trackedBeacon = trackedBeacons[address]
+
+        if (trackedBeacon == null) {
+            Log.d(TAG, "SmartRise entered range: $address, RSSI ${result.rssi}")
+            trackedBeacons[address] = TrackedBeacon(address, now)
+        } else {
+            trackedBeacon.lastSeenAt = now
+        }
+    }
+
+    private fun expireBeacons() {
+        val cutoff = System.currentTimeMillis() - BEACON_LOST_TIMEOUT_MS
+        val iterator = trackedBeacons.iterator()
+
+        while (iterator.hasNext()) {
+            val (_, beacon) = iterator.next()
+            if (beacon.lastSeenAt < cutoff) {
+                Log.d(TAG, "SmartRise left range: ${beacon.address}")
+                iterator.remove()
+            }
+        }
     }
 
     private fun hasBluetoothPermission(): Boolean {
@@ -134,11 +170,17 @@ class BeaconScanService : Service() {
             .build()
     }
 
+    private data class TrackedBeacon(
+        val address: String,
+        var lastSeenAt: Long,
+    )
+
     companion object {
         const val ACTION_START = "expo.modules.beaconscanner.action.START"
         const val ACTION_STOP = "expo.modules.beaconscanner.action.STOP"
         private const val CHANNEL_ID = "beacon_scanning"
         private const val NOTIFICATION_ID = 1001
         private const val TAG = "BeaconScanService"
+        private const val BEACON_LOST_TIMEOUT_MS = 5000L
     }
 }

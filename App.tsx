@@ -16,6 +16,7 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { PresetsProvider } from './src/context/PresetsContext';
 import { requestBluetoothPermissions } from './src/services/bluetoothPermissions';
 import { BeaconScanner } from './src/services/beaconScanner';
+import { BeaconPresenceTracker } from './src/services/beaconPresence';
 
 const Stack = createNativeStackNavigator();
 
@@ -29,6 +30,14 @@ function RootNavigator() {
 
     let isActive = true;
     let cleanupSubscriptions: (() => void) | undefined;
+    const presenceTracker = new BeaconPresenceTracker({
+      onEnter: (beacon) => {
+        console.log('Beacon entered range:', beacon);
+      },
+      onExit: (beacon) => {
+        console.log('Beacon left range:', beacon);
+      },
+    });
 
     requestBluetoothPermissions()
       .then((allowed) => {
@@ -47,7 +56,7 @@ function RootNavigator() {
         const detectedSubscription = BeaconScanner.addListener(
           'beaconDetected',
           (event) => {
-            console.log('Beacon detected:', event);
+            presenceTracker.handleDetected(event);
           },
         );
 
@@ -91,6 +100,7 @@ function RootNavigator() {
 
     return () => {
       isActive = false;
+      presenceTracker.dispose();
       cleanupSubscriptions?.();
     };
   }, [user]);

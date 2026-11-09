@@ -1,12 +1,12 @@
 import { EventSubscription, requireNativeModule } from 'expo-modules-core';
 
-type BeaconDetectedEvent = {
+export type BeaconDetectedEvent = {
   name: string;
   address: string;
   rssi: number;
 };
 
-type ScanErrorEvent = {
+export type ScanErrorEvent = {
   errorCode: number;
 };
 
