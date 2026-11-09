@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View, ActivityIndicator, Alert } from 'react-native';
+import { AppState, View, ActivityIndicator, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from './src/screens/LoginScreen';
@@ -15,6 +15,7 @@ import AdminProfile from './src/screens/AdminProfileScreen';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { PresetsProvider } from './src/context/PresetsContext';
 import { requestBluetoothPermissions } from './src/services/bluetoothPermissions';
+import { BeaconScanner } from './src/services/beaconScanner';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,15 +28,57 @@ function RootNavigator() {
     }
 
     let isActive = true;
+    let cleanupSubscriptions: (() => void) | undefined;
 
     requestBluetoothPermissions()
       .then((allowed) => {
-        if (isActive && !allowed) {
+        if (!isActive) {
+          return;
+        }
+
+        if (!allowed) {
           Alert.alert(
             'Bluetooth permission required',
             'Allow Bluetooth access to detect the beacon.',
           );
+          return;
         }
+
+        const detectedSubscription = BeaconScanner.addListener(
+          'beaconDetected',
+          (event) => {
+            console.log('Beacon detected:', event);
+          },
+        );
+
+        const errorSubscription = BeaconScanner.addListener(
+          'scanError',
+          (event) => {
+            console.error('Beacon scan failed:', event.errorCode);
+          },
+        );
+
+        BeaconScanner.startScanning();
+        const appStateSubscription = AppState.addEventListener(
+          'change',
+          (nextState) => {
+            if (nextState === 'background') {
+              BeaconScanner.stopScanning();
+              BeaconScanner.startBackgroundScanning();
+            } else if (nextState === 'active') {
+              BeaconScanner.stopBackgroundScanning();
+              BeaconScanner.startScanning();
+            }
+          },
+        );
+
+        cleanupSubscriptions = () => {
+          detectedSubscription.remove();
+          errorSubscription.remove();
+          appStateSubscription.remove();
+          BeaconScanner.stopScanning();
+          BeaconScanner.stopBackgroundScanning();
+        };
       })
       .catch(() => {
         if (isActive) {
@@ -48,6 +91,7 @@ function RootNavigator() {
 
     return () => {
       isActive = false;
+      cleanupSubscriptions?.();
     };
   }, [user]);
 
@@ -58,7 +102,6 @@ function RootNavigator() {
       </View>
     );
   }
-
 
   let screen;
   if (!user) {

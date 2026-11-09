@@ -10,6 +10,9 @@ export async function requestBluetoothPermissions(): Promise<boolean> {
       ? [
           PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
           PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+          ...(Platform.Version >= 33
+            ? [PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS]
+            : []),
         ]
       : [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION];
 
