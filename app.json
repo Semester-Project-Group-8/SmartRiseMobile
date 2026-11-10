@@ -8,7 +8,13 @@
       "expo-secure-store"
     ],
     "android": {
-      "package": "com.anonymous.myApp2"
+      "package": "com.anonymous.myApp2",
+      "permissions": [
+        "BLUETOOTH_SCAN",
+        "BLUETOOTH_CONNECT",
+        "ACCESS_FINE_LOCATION",
+        "POST_NOTIFICATIONS"
+      ]
     }
   }
 }

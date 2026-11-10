@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { AppState, View, ActivityIndicator, Alert } from 'react-native';
+import { View, ActivityIndicator, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from './src/screens/LoginScreen';
@@ -16,7 +16,6 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { PresetsProvider } from './src/context/PresetsContext';
 import { requestBluetoothPermissions } from './src/services/bluetoothPermissions';
 import { BeaconScanner } from './src/services/beaconScanner';
-import { BeaconPresenceTracker } from './src/services/beaconPresence';
 
 const Stack = createNativeStackNavigator();
 
@@ -30,14 +29,6 @@ function RootNavigator() {
 
     let isActive = true;
     let cleanupSubscriptions: (() => void) | undefined;
-    const presenceTracker = new BeaconPresenceTracker({
-      onEnter: (beacon) => {
-        console.log('Beacon entered range:', beacon);
-      },
-      onExit: (beacon) => {
-        console.log('Beacon left range:', beacon);
-      },
-    });
 
     requestBluetoothPermissions()
       .then((allowed) => {
@@ -53,10 +44,17 @@ function RootNavigator() {
           return;
         }
 
-        const detectedSubscription = BeaconScanner.addListener(
-          'beaconDetected',
-          (event) => {
-            presenceTracker.handleDetected(event);
+        const enteredSubscription = BeaconScanner.addListener(
+          'beaconEntered',
+          (beacon) => {
+            console.log('Beacon entered range:', beacon);
+          },
+        );
+
+        const exitedSubscription = BeaconScanner.addListener(
+          'beaconExited',
+          (beacon) => {
+            console.log('Beacon left range:', beacon);
           },
         );
 
@@ -67,25 +65,12 @@ function RootNavigator() {
           },
         );
 
-        BeaconScanner.startScanning();
-        const appStateSubscription = AppState.addEventListener(
-          'change',
-          (nextState) => {
-            if (nextState === 'background') {
-              BeaconScanner.stopScanning();
-              BeaconScanner.startBackgroundScanning();
-            } else if (nextState === 'active') {
-              BeaconScanner.stopBackgroundScanning();
-              BeaconScanner.startScanning();
-            }
-          },
-        );
+        BeaconScanner.startBackgroundScanning();
 
         cleanupSubscriptions = () => {
-          detectedSubscription.remove();
+          enteredSubscription.remove();
+          exitedSubscription.remove();
           errorSubscription.remove();
-          appStateSubscription.remove();
-          BeaconScanner.stopScanning();
           BeaconScanner.stopBackgroundScanning();
         };
       })
@@ -100,7 +85,6 @@ function RootNavigator() {
 
     return () => {
       isActive = false;
-      presenceTracker.dispose();
       cleanupSubscriptions?.();
     };
   }, [user]);

@@ -89,6 +89,10 @@ class BeaconScanService : Service() {
 
             override fun onScanFailed(errorCode: Int) {
                 Log.e(TAG, "BLE scan failed with error code $errorCode.")
+                BeaconEventBus.emit(
+                    "scanError",
+                    mapOf("errorCode" to errorCode),
+                )
             }
         }
 
@@ -104,8 +108,8 @@ class BeaconScanService : Service() {
 
     private fun stopScanning() {
         handler.removeCallbacks(expireBeaconsRunnable)
-        val callback = scanCallback ?: return
-        if (hasBluetoothPermission()) {
+        val callback = scanCallback
+        if (callback != null && hasBluetoothPermission()) {
             getSystemService(BluetoothManager::class.java)
                 ?.adapter
                 ?.bluetoothLeScanner
@@ -122,9 +126,20 @@ class BeaconScanService : Service() {
 
         if (trackedBeacon == null) {
             Log.d(TAG, "SmartRise entered range: $address, RSSI ${result.rssi}")
-            trackedBeacons[address] = TrackedBeacon(address, now)
+            val beacon = TrackedBeacon(
+                name = result.device.name ?: "SmartRise",
+                address = address,
+                rssi = result.rssi,
+                lastSeenAt = now,
+            )
+            trackedBeacons[address] = beacon
+            BeaconEventBus.emit(
+                "beaconEntered",
+                beacon.toEvent(),
+            )
         } else {
             trackedBeacon.lastSeenAt = now
+            trackedBeacon.rssi = result.rssi
         }
     }
 
@@ -137,6 +152,7 @@ class BeaconScanService : Service() {
             if (beacon.lastSeenAt < cutoff) {
                 Log.d(TAG, "SmartRise left range: ${beacon.address}")
                 iterator.remove()
+                BeaconEventBus.emit("beaconExited", beacon.toEvent())
             }
         }
     }
@@ -171,9 +187,17 @@ class BeaconScanService : Service() {
     }
 
     private data class TrackedBeacon(
+        val name: String,
         val address: String,
+        var rssi: Int,
         var lastSeenAt: Long,
-    )
+    ) {
+        fun toEvent(): Map<String, Any> = mapOf(
+            "name" to name,
+            "address" to address,
+            "rssi" to rssi,
+        )
+    }
 
     companion object {
         const val ACTION_START = "expo.modules.beaconscanner.action.START"

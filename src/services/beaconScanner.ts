@@ -11,12 +11,10 @@ export type ScanErrorEvent = {
 };
 
 type BeaconScannerModuleType = {
-  startScanning(): void;
-  stopScanning(): void;
   startBackgroundScanning(): void;
   stopBackgroundScanning(): void;
   addListener(
-    eventName: 'beaconDetected',
+    eventName: 'beaconEntered' | 'beaconExited',
     listener: (event: BeaconDetectedEvent) => void,
   ): EventSubscription;
   addListener(
