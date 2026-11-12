@@ -4,6 +4,16 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import android.content.Intent
 import androidx.core.content.ContextCompat
+import expo.modules.kotlin.records.Field
+import expo.modules.kotlin.records.Record
+
+class StartOptions : Record {
+    @Field
+    val reportUrl: String? = null
+
+    @Field
+    val authToken: String? = null
+}
 
 class BeaconScannerModule : Module() {
 
@@ -12,9 +22,10 @@ class BeaconScannerModule : Module() {
 
         Events("beaconEntered", "beaconExited", "scanError")
 
-        Function("startBackgroundScanning") {
+        Function("startBackgroundScanning") { options: StartOptions? ->
             val context = appContext.reactContext
                 ?: throw IllegalStateException("Android context is unavailable.")
+            BeaconReporter.saveConfig(context, options?.reportUrl, options?.authToken)
             val intent = Intent(context, BeaconScanService::class.java).apply {
                 action = BeaconScanService.ACTION_START
             }
@@ -29,10 +40,11 @@ class BeaconScannerModule : Module() {
         Function("stopBackgroundScanning") {
             val context = appContext.reactContext
                 ?: throw IllegalStateException("Android context is unavailable.")
-            val intent = Intent(context, BeaconScanService::class.java).apply {
-                action = BeaconScanService.ACTION_STOP
-            }
-            context.startService(intent)
+            // stopService is a no-op when the service isn't running, and unlike
+            // startService it can't fail when called while the app is backgrounded.
+            context.stopService(Intent(context, BeaconScanService::class.java))
+            // Called on logout: forget the user's token so nothing is reported for them.
+            BeaconReporter.clearConfig(context)
         }
 
         OnCreate {

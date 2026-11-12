@@ -12,14 +12,17 @@ import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 
 class BeaconScanService : Service() {
     private var scanCallback: ScanCallback? = null
+    private lateinit var reporter: BeaconReporter
     private val trackedBeacons = mutableMapOf<String, TrackedBeacon>()
     private val handler = android.os.Handler(android.os.Looper.getMainLooper())
     private val expireBeaconsRunnable = object : Runnable {
@@ -31,8 +34,47 @@ class BeaconScanService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        reporter = BeaconReporter(this)
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, buildNotification())
+        try {
+            ServiceCompat.startForeground(
+                this,
+                NOTIFICATION_ID,
+                buildNotification(),
+                foregroundServiceTypes(),
+            )
+        } catch (error: SecurityException) {
+            // Android refuses the `location` type when the service is restarted
+            // from the background (e.g. START_STICKY after the process was killed).
+            Log.w(TAG, "Location FGS type not allowed, falling back.", error)
+            ServiceCompat.startForeground(
+                this,
+                NOTIFICATION_ID,
+                buildNotification(),
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+                } else {
+                    0
+                },
+            )
+        }
+    }
+
+    // The `location` type keeps "while using the app" location access valid after
+    // the app is closed; without it Android hides BLE scan results in the background.
+    private fun foregroundServiceTypes(): Int {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            return 0
+        }
+        var types = ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+        val hasLocation = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
+        if (hasLocation) {
+            types = types or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+        }
+        return types
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -50,6 +92,7 @@ class BeaconScanService : Service() {
         stopScanning()
         handler.removeCallbacks(expireBeaconsRunnable)
         trackedBeacons.clear()
+        reporter.shutdown()
         super.onDestroy()
     }
 
@@ -137,6 +180,8 @@ class BeaconScanService : Service() {
                 "beaconEntered",
                 beacon.toEvent(),
             )
+            reporter.report("entered", beacon.name, beacon.address, beacon.rssi)
+            updateNotification()
         } else {
             trackedBeacon.lastSeenAt = now
             trackedBeacon.rssi = result.rssi
@@ -146,6 +191,7 @@ class BeaconScanService : Service() {
     private fun expireBeacons() {
         val cutoff = System.currentTimeMillis() - BEACON_LOST_TIMEOUT_MS
         val iterator = trackedBeacons.iterator()
+        var changed = false
 
         while (iterator.hasNext()) {
             val (_, beacon) = iterator.next()
@@ -153,8 +199,21 @@ class BeaconScanService : Service() {
                 Log.d(TAG, "SmartRise left range: ${beacon.address}")
                 iterator.remove()
                 BeaconEventBus.emit("beaconExited", beacon.toEvent())
+                reporter.report("exited", beacon.name, beacon.address, beacon.rssi)
+                changed = true
             }
         }
+
+        if (changed) {
+            updateNotification()
+        }
+    }
+
+    // JS listeners are gone once the app is closed, so the ongoing notification
+    // is what shows the user (and you, while testing) that a beacon is in range.
+    private fun updateNotification() {
+        getSystemService(NotificationManager::class.java)
+            ?.notify(NOTIFICATION_ID, buildNotification())
     }
 
     private fun hasBluetoothPermission(): Boolean {
@@ -178,11 +237,18 @@ class BeaconScanService : Service() {
     }
 
     private fun buildNotification(): Notification {
+        val nearest = trackedBeacons.values.maxByOrNull { it.rssi }
+        val text = if (nearest == null) {
+            "SmartRise is looking for nearby beacons."
+        } else {
+            "Near ${nearest.name} (${nearest.address})"
+        }
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Beacon scanning active")
-            .setContentText("SmartRise is looking for nearby beacons.")
+            .setContentText(text)
             .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
             .setOngoing(true)
+            .setOnlyAlertOnce(true)
             .build()
     }
 

@@ -16,6 +16,7 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { PresetsProvider } from './src/context/PresetsContext';
 import { requestBluetoothPermissions } from './src/services/bluetoothPermissions';
 import { BeaconScanner } from './src/services/beaconScanner';
+import * as SecureStore from 'expo-secure-store';
 
 const Stack = createNativeStackNavigator();
 
@@ -31,7 +32,7 @@ function RootNavigator() {
     let cleanupSubscriptions: (() => void) | undefined;
 
     requestBluetoothPermissions()
-      .then((allowed) => {
+      .then(async (allowed) => {
         if (!isActive) {
           return;
         }
@@ -65,13 +66,26 @@ function RootNavigator() {
           },
         );
 
-        BeaconScanner.startBackgroundScanning();
+        // The native service reports to the backend itself, so it needs the
+        // endpoint and the user's token up front.
+        const authToken = (await SecureStore.getItemAsync('token')) ?? undefined;
+        if (!isActive) {
+          enteredSubscription.remove();
+          exitedSubscription.remove();
+          errorSubscription.remove();
+          return;
+        }
+        BeaconScanner.startBackgroundScanning({
+          reportUrl: process.env.EXPO_PUBLIC_BEACON_REPORT_URL,
+          authToken,
+        });
 
+        // Only detach JS listeners here. This cleanup also runs when the app is
+        // swiped away, and scanning must keep running in the background then.
         cleanupSubscriptions = () => {
           enteredSubscription.remove();
           exitedSubscription.remove();
           errorSubscription.remove();
-          BeaconScanner.stopBackgroundScanning();
         };
       })
       .catch(() => {
@@ -88,6 +102,13 @@ function RootNavigator() {
       cleanupSubscriptions?.();
     };
   }, [user]);
+
+  // Stop the background scan only when the user is actually logged out.
+  useEffect(() => {
+    if (!isLoading && !user) {
+      BeaconScanner.stopBackgroundScanning();
+    }
+  }, [isLoading, user]);
 
   if (isLoading) {
     return (
