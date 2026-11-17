@@ -8,7 +8,7 @@ import {
   setAllDeskHeights,
   setDeskHeight,
   unassignDesk,
-} from '../api';
+} from '../fakeapi';
 import { mockDesks, mockUsers } from '../mockData';
 
 describe('fake API', () => {

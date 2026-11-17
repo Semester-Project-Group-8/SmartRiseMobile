@@ -1,9 +1,10 @@
-import { View, Text, Pressable } from "react-native";
+import { useState } from "react";
+import { View, Text, Pressable, Alert } from "react-native";
 import { cleanerStyles } from "../styles/CleanerScreenStyle";
 import { setAllDeskHeights } from "../services/api";
 
-
 import { useAuth } from '../context/AuthContext';
+
 function Header() {
   return (
     <View style={cleanerStyles.header}>
@@ -17,11 +18,29 @@ function Header() {
 
 export default function CleanerScreen() {
   const { logout } = useAuth();
+  const [lifting, setLifting] = useState(false);
+
+  const handleLift = async () => {
+    setLifting(true);
+    try {
+      await setAllDeskHeights(140);
+      Alert.alert('Done', 'All tables are going up.');
+    } catch (e) {
+      Alert.alert('Could not lift the tables', (e as Error).message);
+    } finally {
+      setLifting(false);
+    }
+  };
+
   return (
     <View style={cleanerStyles.container}>
       <Header></Header>
-      <Pressable style={cleanerStyles.button} onPress={() => {setAllDeskHeights(140)}}>
-        <Text style={cleanerStyles.buttonText}>Lift up all tables</Text>
+      <Pressable
+        style={[cleanerStyles.button, lifting && { opacity: 0.6 }]}
+        onPress={handleLift}
+        disabled={lifting}
+      >
+        <Text style={cleanerStyles.buttonText}>{lifting ? 'Lifting...' : 'Lift up all tables'}</Text>
       </Pressable>
       <Pressable onPress={logout} style={{ padding: 16, alignItems: 'center' }}>
         <Text style={{ color: '#b91c1c', fontWeight: '600' }}>Log out</Text>

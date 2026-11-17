@@ -5,6 +5,8 @@ export type User = {
   id: string;
   name: string;
   surname: string;
+  email?: string;
+  dateOfBirth?: string;
   height: number;
   sitPreset: number | null;
   standPreset: number | null;
@@ -12,4 +14,3 @@ export type User = {
   approval: Status;
   assignedDeskID: string | null;
 };
-
