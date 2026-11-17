@@ -40,10 +40,7 @@ class BeaconScannerModule : Module() {
         Function("stopBackgroundScanning") {
             val context = appContext.reactContext
                 ?: throw IllegalStateException("Android context is unavailable.")
-            // stopService is a no-op when the service isn't running, and unlike
-            // startService it can't fail when called while the app is backgrounded.
             context.stopService(Intent(context, BeaconScanService::class.java))
-            // Called on logout: forget the user's token so nothing is reported for them.
             BeaconReporter.clearConfig(context)
         }
 

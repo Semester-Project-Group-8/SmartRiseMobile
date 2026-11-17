@@ -66,8 +66,6 @@ function RootNavigator() {
           },
         );
 
-        // The native service reports to the backend itself, so it needs the
-        // endpoint and the user's token up front.
         const authToken = (await SecureStore.getItemAsync('token')) ?? undefined;
         if (!isActive) {
           enteredSubscription.remove();
@@ -80,8 +78,6 @@ function RootNavigator() {
           authToken,
         });
 
-        // Only detach JS listeners here. This cleanup also runs when the app is
-        // swiped away, and scanning must keep running in the background then.
         cleanupSubscriptions = () => {
           enteredSubscription.remove();
           exitedSubscription.remove();
@@ -103,7 +99,6 @@ function RootNavigator() {
     };
   }, [user]);
 
-  // Stop the background scan only when the user is actually logged out.
   useEffect(() => {
     if (!isLoading && !user) {
       BeaconScanner.stopBackgroundScanning();

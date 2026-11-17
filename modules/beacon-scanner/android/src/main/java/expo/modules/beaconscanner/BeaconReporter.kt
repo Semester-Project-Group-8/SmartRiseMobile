@@ -7,19 +7,10 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.Executors
 
-/**
- * Sends beacon enter/exit events to the backend from native code, so reporting
- * keeps working after the app is swiped away and JavaScript is no longer running.
- *
- * The URL and token are saved in SharedPreferences (set from JS when scanning
- * starts) so they survive the service being restarted by Android.
- */
 class BeaconReporter(context: Context) {
     private val prefs = context.applicationContext
         .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    // One background thread: network calls must not run on the main thread,
-    // and a single thread keeps entered/exited events in order.
     private val executor = Executors.newSingleThreadExecutor()
 
     fun report(event: String, name: String, address: String, rssi: Int) {
@@ -31,7 +22,6 @@ class BeaconReporter(context: Context) {
             .put("beaconName", name)
             .put("beaconAddress", address)
             .put("rssi", rssi)
-            .put("timestamp", System.currentTimeMillis())
             .toString()
 
         if (reportUrl.isNullOrBlank()) {

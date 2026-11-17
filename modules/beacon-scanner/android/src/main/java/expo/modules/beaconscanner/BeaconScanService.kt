@@ -44,8 +44,6 @@ class BeaconScanService : Service() {
                 foregroundServiceTypes(),
             )
         } catch (error: SecurityException) {
-            // Android refuses the `location` type when the service is restarted
-            // from the background (e.g. START_STICKY after the process was killed).
             Log.w(TAG, "Location FGS type not allowed, falling back.", error)
             ServiceCompat.startForeground(
                 this,
@@ -60,8 +58,6 @@ class BeaconScanService : Service() {
         }
     }
 
-    // The `location` type keeps "while using the app" location access valid after
-    // the app is closed; without it Android hides BLE scan results in the background.
     private fun foregroundServiceTypes(): Int {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             return 0
@@ -209,8 +205,6 @@ class BeaconScanService : Service() {
         }
     }
 
-    // JS listeners are gone once the app is closed, so the ongoing notification
-    // is what shows the user (and you, while testing) that a beacon is in range.
     private fun updateNotification() {
         getSystemService(NotificationManager::class.java)
             ?.notify(NOTIFICATION_ID, buildNotification())
@@ -271,6 +265,6 @@ class BeaconScanService : Service() {
         private const val CHANNEL_ID = "beacon_scanning"
         private const val NOTIFICATION_ID = 1001
         private const val TAG = "BeaconScanService"
-        private const val BEACON_LOST_TIMEOUT_MS = 5000L
+        private const val BEACON_LOST_TIMEOUT_MS = 15 * 60 * 1000L
     }
 }

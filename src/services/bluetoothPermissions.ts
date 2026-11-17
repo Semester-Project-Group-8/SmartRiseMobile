@@ -10,8 +10,6 @@ export async function requestBluetoothPermissions(): Promise<boolean> {
       ? [
           PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
           PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-          // BLUETOOTH_SCAN is declared without `neverForLocation`, so Android
-          // silently drops BLE scan results unless location is also granted.
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
           ...(Platform.Version >= 33
             ? [PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS]
