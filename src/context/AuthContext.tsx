@@ -1,12 +1,15 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { User, Login } from '../services/LoginAuth';
 import * as SecureStore from 'expo-secure-store';
+import { login as apiLogin, getUserByEmail } from '../services/api';
+import type { User } from '../types/user';
+
 type AuthContextType = {
     user: User | null;
-    login: (username: string, password: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     isLoading: boolean;
 };
+
 const AuthContext = createContext<AuthContextType>({
     user: null,
     login: async () => { },
@@ -14,42 +17,63 @@ const AuthContext = createContext<AuthContextType>({
     isLoading: true,
 });
 
-
+const ROLES = ['user', 'admin', 'cleaner'];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const login = async (username: string, password: string) => {
-        const result = await Login(username, password);
-        await SecureStore.setItemAsync("token", result.token);
-        await SecureStore.setItemAsync("user", JSON.stringify(result.user));
-        setUser(result.user);
-    }
+
+    const login = async (email: string, password: string) => {
+        const token = await apiLogin(email, password);
+        await SecureStore.setItemAsync("token", token);
+
+        try {
+            const found = await getUserByEmail(email);
+            if (!found) {
+                throw new Error("Logged in, but your profile wasn't found.");
+            }
+            await SecureStore.setItemAsync("user", JSON.stringify(found));
+            setUser(found);
+        } catch (error) {
+            await SecureStore.deleteItemAsync("token");
+            throw error;
+        }
+    };
+
     const logout = async () => {
         await SecureStore.deleteItemAsync("token");
         await SecureStore.deleteItemAsync("user");
         setUser(null);
-    }
+    };
+
     useEffect(() => {
         const loadSavedLogin = async () => {
-            const savedToken = await SecureStore.getItemAsync("token");
-            const savedUser = await SecureStore.getItemAsync("user");
-            if (savedToken && savedUser) {
-                setUser(JSON.parse(savedUser));
-                console.log('Loaded saved user:', savedUser);
+            try {
+                const savedToken = await SecureStore.getItemAsync("token");
+                const savedUser = await SecureStore.getItemAsync("user");
+                if (savedToken && savedUser) {
+                    const parsed = JSON.parse(savedUser);
+                    if (ROLES.includes(parsed.role)) {
+                        setUser(parsed);
+                    } else {
+                        await SecureStore.deleteItemAsync("token");
+                        await SecureStore.deleteItemAsync("user");
+                    }
+                }
+            } finally {
+                setIsLoading(false);
             }
-            setIsLoading(false);
         };
         loadSavedLogin();
     }, []);
+
     return (
         <AuthContext.Provider value={{ user, login, logout, isLoading }}>
             {children}
         </AuthContext.Provider>
-
     );
 }
-export function useAuth() {
-    return (useContext(AuthContext));
-}
 
+export function useAuth() {
+    return useContext(AuthContext);
+}

@@ -1,28 +1,28 @@
-import { View, Text, Pressable } from "react-native";
+import { useEffect, useState } from "react";
+import { View, Text, Pressable, Alert } from "react-native";
 import { adminStyles } from '../styles/AdminScreenStyle';
-import { getPendingUsers, getUserById, getDesks, getUsers, setAllDeskHeights } from '../services/api';
+import { getPendingUsers, getDesks, setAllDeskHeights } from '../services/api';
 import { User } from '../types/user';
 import { Desk } from '../types/desk';
 
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from "@react-navigation/native";
+
 function Header() {
   const navigation = useNavigation<any>();
   return (
     <View style={adminStyles.header}>
       <View>
         <Text style={adminStyles.welcomeText}>Welcome back {'\n'} Admin</Text>
-
       </View>
-      <Pressable style={adminStyles.profileButton} onPress={()=> navigation.navigate('AdminProfile')}>
+      <Pressable style={adminStyles.profileButton} onPress={() => navigation.navigate('AdminProfile')}>
         <Text style={adminStyles.profileLetter}>A</Text>
       </Pressable>
     </View>
   );
 }
 
-function Summary( { desks }: { desks: Desk[]}) {
-
+function Summary({ desks }: { desks: Desk[] }) {
   const connectedDesks = desks.filter(desk => desk.isConnected);
   const offlineDesks = desks.filter(desk => !desk.isConnected);
 
@@ -45,13 +45,13 @@ function Summary( { desks }: { desks: Desk[]}) {
 }
 
 function WaitingUsers({ pendingUsers }: { pendingUsers: User[] }) {
-   const navigation = useNavigation<any>();
+  const navigation = useNavigation<any>();
   return (
-    <Pressable style={adminStyles.waitingBanner} onPress={() =>navigation.navigate('New Users')}>
+    <Pressable style={adminStyles.waitingBanner} onPress={() => navigation.navigate('New Users')}>
       <Text style={adminStyles.waitingText}>{pendingUsers.length} new users waiting for approval</Text>
       <Text style={adminStyles.waitingText}>Review</Text>
     </Pressable>
-    )
+  )
 }
 
 function ManageButtons() {
@@ -71,24 +71,57 @@ function ManageButtons() {
 }
 
 export default function AdminScreen() {
-
-  const userId = 'user-003';
-
-  const user = getUserById(userId); 
-  const users = getUsers();
-  const pendindUsers: User[] = getPendingUsers();
-  const desks: Desk[] = getDesks();
-
   const { logout } = useAuth();
+  const [pendingUsers, setPendingUsers] = useState<User[]>([]);
+  const [desks, setDesks] = useState<Desk[]>([]);
+  const [error, setError] = useState('');
+  const [lifting, setLifting] = useState(false);
+
+  useEffect(() => {
+    const loadDesks = async () => {
+      try {
+        setDesks(await getDesks());
+      } catch (e) {
+        setError((e as Error).message);
+      }
+    };
+    const loadPendingUsers = async () => {
+      try {
+        setPendingUsers(await getPendingUsers());
+      } catch (e) {
+        setError((e as Error).message);
+      }
+    };
+    loadDesks();
+    loadPendingUsers();
+  }, []);
+
+  const handleLift = async () => {
+    setLifting(true);
+    try {
+      await setAllDeskHeights(140);
+      Alert.alert('Done', 'All tables are going up.');
+    } catch (e) {
+      Alert.alert('Could not lift the tables', (e as Error).message);
+    } finally {
+      setLifting(false);
+    }
+  };
+
   return (
     <View style={adminStyles.container}>
       <Header />
-      <Summary desks={desks}/>
-      <WaitingUsers pendingUsers={pendindUsers}/>
+      {error !== '' && <Text style={{ color: '#b91c1c', marginBottom: 12 }}>{error}</Text>}
+      <Summary desks={desks} />
+      <WaitingUsers pendingUsers={pendingUsers} />
       <ManageButtons />
 
-      <Pressable style={adminStyles.liftButton} onPress={() => {setAllDeskHeights(140)}}>
-        <Text style={adminStyles.liftText}>Lift all tables</Text>
+      <Pressable
+        style={[adminStyles.liftButton, lifting && { opacity: 0.6 }]}
+        onPress={handleLift}
+        disabled={lifting}
+      >
+        <Text style={adminStyles.liftText}>{lifting ? 'Lifting...' : 'Lift all tables'}</Text>
       </Pressable>
 
       <Pressable onPress={logout} style={{ padding: 16, alignItems: 'center' }}>

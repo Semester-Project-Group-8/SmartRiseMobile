@@ -1,56 +1,71 @@
-import { View, Text, Pressable } from "react-native";
+import { useEffect, useState } from "react";
+import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { userStyles } from '../styles/UserScreenStyle';
-import { getDeskById, getUserById } from "../services/api";
+import { getDeskById } from "../services/api";
 import type { Desk } from "../types/desk";
 
 import { useAuth } from '../context/AuthContext';
 import { usePresets } from '../context/PresetsContext';
-function Header() {
+
+function Header({ name }: { name: string }) {
     const navigation = useNavigation<any>();
     return (
         <View style={userStyles.header}>
-            <Text style={userStyles.title}>Welcome Back {'\n'} User Name</Text>
+            <Text style={userStyles.title}>Welcome Back {'\n'} {name}</Text>
             <Pressable
                 style={userStyles.profileIcon}
                 onPress={() => navigation.navigate('UserProfile')}
                 accessibilityLabel="Profile">
-                <Text style={userStyles.profileLetter}>U</Text>
+                <Text style={userStyles.profileLetter}>{name.charAt(0).toUpperCase() || 'U'}</Text>
             </Pressable>
         </View>
     );
 }
 
 export default function UserScreen() {
-    const { logout } = useAuth();
-    const deskId = 'desk-002';
-    const userId = 'user-002';
+    const { user, logout } = useAuth();
+    const [desk, setDesk] = useState<Desk | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
-    const desk = getDeskById(deskId);
-    const user = getUserById(userId);
-
+    useEffect(() => {
+        const loadDesk = async () => {
+            if (!user?.assignedDeskID) {
+                setLoading(false);
+                return;
+            }
+            try {
+                setDesk(await getDeskById(user.assignedDeskID));
+            } catch (e) {
+                setError((e as Error).message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadDesk();
+    }, [user]);
 
     return (
         <View style={userStyles.container}>
-            <Header></Header>
-            <YourDesk desk={desk}></YourDesk>
+            <Header name={user?.name ?? 'User'} />
+
+            {loading && <ActivityIndicator />}
+            {!loading && error !== '' && <Text>{error}</Text>}
+            {!loading && error === '' && !desk && <Text>No desk assigned yet.</Text>}
+            {!loading && desk && <YourDesk desk={desk} />}
+
             <Text style={userStyles.PresetTextHeader}>Presets</Text>
-            {user ? <Preset /> : <Text>User not found.</Text>}
-            <Profile></Profile>
+            <Preset />
+            <Profile />
             <Pressable onPress={logout} style={{ padding: 16, alignItems: 'center' }}>
                 <Text style={{ color: '#b91c1c', fontWeight: '600' }}>Log out</Text>
             </Pressable>
         </View>
-
     );
-
 }
 
-function YourDesk({desk}: {desk: Desk | undefined;}) {
-    if (!desk) {
-        return <Text>Desk not found.</Text>;
-    }
-
+function YourDesk({ desk }: { desk: Desk }) {
     return (
         <View style={userStyles.DeskView}>
             <View style={userStyles.deskHeader}>
@@ -91,7 +106,7 @@ function Profile() {
     const navigation = useNavigation<any>();
     return (
         <View style={userStyles.ProfileView}>
-            <Pressable style={userStyles.Profile } onPress={() => navigation.navigate('Information')}
+            <Pressable style={userStyles.Profile} onPress={() => navigation.navigate('Information')}
                 accessibilityLabel="Information">
                 <Text>Info</Text>
             </Pressable>

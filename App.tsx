@@ -32,7 +32,7 @@ function RootNavigator() {
   let screen;
   if (!user) {
     screen = <Stack.Screen name="Login" component={LoginScreen} />;
-  } else if (user.role === 'Admin') {
+  } else if (user.role === 'admin') {
     screen = (
       <>
         <Stack.Screen name="Admin" component={AdminScreen} />
@@ -58,7 +58,7 @@ function RootNavigator() {
         />
       </>
     );
-  } else if (user.role === 'Cleaner') {
+  } else if (user.role === 'cleaner') {
     screen = <Stack.Screen name="Cleaner" component={CleanerScreen} />;
   } else {
     screen = (

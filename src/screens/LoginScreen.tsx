@@ -8,7 +8,7 @@ function Header() {
     <View style={loginStyles.header}>
       <Text style={loginStyles.title}>Welcome to SmartRise</Text>
       <Text style={loginStyles.subtitle}>
-        Please sign in below using your username and password
+        Please sign in below using your email and password
       </Text>
     </View>
   );
@@ -17,7 +17,7 @@ function Header() {
 
 export default function LoginScreen() {
 
-  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errormessage, setErrormessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,7 @@ export default function LoginScreen() {
     setErrormessage("");
     setLoading(true);
     try {
-      await login(name, password);
+      await login(email, password);
       console.log('Logged in');
     } catch (error) {
       setErrormessage((error as Error).message);
@@ -40,11 +40,12 @@ export default function LoginScreen() {
       <Header></Header>
       <TextInput
         style={loginStyles.input}
-        placeholder="Enter your Username"
+        placeholder="Enter your Email"
         placeholderTextColor="#9ca3af"
         autoCapitalize="none"
-        value={name}
-        onChangeText={setName}
+        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
       />
       <TextInput
         style={loginStyles.input}
