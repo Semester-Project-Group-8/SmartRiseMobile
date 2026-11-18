@@ -1,1 +1,1 @@
-export const API_URL = 'http://10.149.170.16:8080';
+export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8080';
