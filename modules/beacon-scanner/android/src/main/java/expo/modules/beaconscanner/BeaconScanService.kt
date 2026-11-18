@@ -265,6 +265,6 @@ class BeaconScanService : Service() {
         private const val CHANNEL_ID = "beacon_scanning"
         private const val NOTIFICATION_ID = 1001
         private const val TAG = "BeaconScanService"
-        private const val BEACON_LOST_TIMEOUT_MS = 15 * 60 * 1000L
+        private const val BEACON_LOST_TIMEOUT_MS = 5000L
     }
 }
