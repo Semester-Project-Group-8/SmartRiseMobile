@@ -1,4 +1,5 @@
-import { View, ActivityIndicator } from 'react-native';
+import { useEffect } from 'react';
+import { View, ActivityIndicator, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from './src/screens/LoginScreen';
@@ -13,12 +14,96 @@ import NewUsers from './src/screens/AdminNewUsersScreen';
 import AdminProfile from './src/screens/AdminProfileScreen';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { PresetsProvider } from './src/context/PresetsContext';
+import { requestBluetoothPermissions } from './src/services/bluetoothPermissions';
+import { BeaconScanner } from './src/services/beaconScanner';
+import * as SecureStore from 'expo-secure-store';
 
 const Stack = createNativeStackNavigator();
 
 function RootNavigator() {
   const { user, isLoading } = useAuth();
 
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    let isActive = true;
+    let cleanupSubscriptions: (() => void) | undefined;
+
+    requestBluetoothPermissions()
+      .then(async (allowed) => {
+        if (!isActive) {
+          return;
+        }
+
+        if (!allowed) {
+          Alert.alert(
+            'Bluetooth permission required',
+            'Allow Bluetooth access to detect the beacon.',
+          );
+          return;
+        }
+
+        const enteredSubscription = BeaconScanner.addListener(
+          'beaconEntered',
+          (beacon) => {
+            console.log('Beacon entered range:', beacon);
+          },
+        );
+
+        const exitedSubscription = BeaconScanner.addListener(
+          'beaconExited',
+          (beacon) => {
+            console.log('Beacon left range:', beacon);
+          },
+        );
+
+        const errorSubscription = BeaconScanner.addListener(
+          'scanError',
+          (event) => {
+            console.error('Beacon scan failed:', event.errorCode);
+          },
+        );
+
+        const authToken = (await SecureStore.getItemAsync('token')) ?? undefined;
+        if (!isActive) {
+          enteredSubscription.remove();
+          exitedSubscription.remove();
+          errorSubscription.remove();
+          return;
+        }
+        BeaconScanner.startBackgroundScanning({
+          reportUrl: process.env.EXPO_PUBLIC_BEACON_REPORT_URL,
+          authToken,
+        });
+
+        cleanupSubscriptions = () => {
+          enteredSubscription.remove();
+          exitedSubscription.remove();
+          errorSubscription.remove();
+        };
+      })
+      .catch(() => {
+        if (isActive) {
+          Alert.alert(
+            'Bluetooth permission error',
+            'We could not request Bluetooth access. Please try again.',
+          );
+        }
+      });
+
+    return () => {
+      isActive = false;
+      cleanupSubscriptions?.();
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      BeaconScanner.stopBackgroundScanning();
+    }
+  }, [isLoading, user]);
 
   if (isLoading) {
     return (
@@ -27,7 +112,6 @@ function RootNavigator() {
       </View>
     );
   }
-
 
   let screen;
   if (!user) {

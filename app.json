@@ -5,10 +5,17 @@
     "version": "1.0.0",
     "plugins": [
       "expo-status-bar",
-      "expo-secure-store"
+      "expo-secure-store",
+      "./plugins/withLocalCmake"
     ],
     "android": {
-      "package": "com.anonymous.myApp2"
+      "package": "com.anonymous.myApp2",
+      "permissions": [
+        "BLUETOOTH_SCAN",
+        "BLUETOOTH_CONNECT",
+        "ACCESS_FINE_LOCATION",
+        "POST_NOTIFICATIONS"
+      ]
     }
   }
 }
