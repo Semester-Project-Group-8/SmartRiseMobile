@@ -5,7 +5,8 @@
     "version": "1.0.0",
     "plugins": [
       "expo-status-bar",
-      "expo-secure-store"
+      "expo-secure-store",
+      "./plugins/withLocalCmake"
     ],
     "android": {
       "package": "com.anonymous.myApp2",
