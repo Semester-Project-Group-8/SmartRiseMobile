@@ -18,6 +18,7 @@ export default function Registration() {
     const [showPassword, setShowPassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
     const navigation = useNavigation<any>();
     const headerHeight = useHeaderHeight();
 
@@ -65,13 +66,29 @@ export default function Registration() {
                 phone: phone.trim(),
                 height: heightCm,
             });
-            navigation.navigate('Login');
+            setSubmitted(true);
         } catch (error) {
             setErrorMessage(error instanceof Error ? error.message : 'Something went wrong.');
         } finally {
             setLoading(false);
         }
     };
+
+    if (submitted) {
+        return (
+            <ScrollView contentContainerStyle={CreateProfileStyle.Container}>
+                <View style={CreateProfileStyle.Header}>
+                    <Text style={CreateProfileStyle.HeaderWelcomeText}>Request sent!</Text>
+                    <Text style={CreateProfileStyle.HeaderText}>
+                        An admin will review your registration. You can log in once your account is approved.
+                    </Text>
+                </View>
+                <Pressable style={CreateProfileStyle.Button} onPress={() => navigation.navigate('Login')}>
+                    <Text style={CreateProfileStyle.ButtonText}>Back to login</Text>
+                </Pressable>
+            </ScrollView>
+        );
+    }
 
     return (
         <KeyboardAvoidingView
