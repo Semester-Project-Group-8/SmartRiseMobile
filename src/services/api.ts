@@ -1,7 +1,7 @@
 import { request, ApiError } from './request';
 import type { User } from '../types/user';
 import type { Desk } from '../types/desk';
-import type { ApiDesk, ApiEmployee, ApiLoginResponse, ApiMessage } from '../types/api';
+import type { ApiCreateEmployeeRequest, ApiDesk, ApiEmployee, ApiLoginResponse, ApiMessage } from '../types/api';
 
 
 
@@ -14,7 +14,7 @@ function toUser(employee: ApiEmployee): User {
         surname: rest.join(' '),
         email: employee.email,
         dateOfBirth: employee.dateOfBirth,
-        height: 0,
+        height: employee.height ?? 0,
         sitPreset: employee.desk ? employee.desk.preferredHeight : null,
         standPreset: null,
         role: employee.role === 'cleaner' ? 'cleaner' : employee.role === 'admin' ? 'admin' : 'user',
@@ -56,6 +56,13 @@ export async function login(email: string, password: string): Promise<string> {
     }
 }
 
+
+export async function createUser(data: ApiCreateEmployeeRequest): Promise<void> {
+    await request<ApiEmployee>('/users/employee', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+}
 
 export async function getUsers(): Promise<User[]> {
     const employees = await request<ApiEmployee[]>('/users');

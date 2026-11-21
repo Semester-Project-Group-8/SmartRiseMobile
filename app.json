@@ -6,7 +6,8 @@
     "plugins": [
       "expo-status-bar",
       "expo-secure-store",
-      "./plugins/withLocalCmake"
+      "./plugins/withLocalCmake",
+      "@react-native-community/datetimepicker"
     ],
     "android": {
       "package": "com.anonymous.myApp2",

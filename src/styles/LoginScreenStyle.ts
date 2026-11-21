@@ -8,6 +8,7 @@ export const loginStyles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
+    color:"#000000"
   },
   button: {
     backgroundColor: '#2563eb',
@@ -45,5 +46,26 @@ export const loginStyles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 10,
-  }
+  },
+
+  registerView: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    gap: 6,
+  },
+  registerText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  registerLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2563eb',
+  },
+  registerLinkPressed: {
+    opacity: 0.6,
+  },
+
 });
