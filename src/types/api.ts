@@ -24,3 +24,12 @@ export type ApiLoginResponse = {
 export type ApiMessage = {
   message: string;
 };
+
+export type ApiTicket = {
+  id: string;
+  title: string;
+  description_Text: string;
+  reportTime: string;
+  employeeId: string | null;
+  deskId: string;
+};

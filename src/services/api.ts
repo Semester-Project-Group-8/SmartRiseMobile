@@ -1,7 +1,7 @@
 import { request, ApiError } from './request';
 import type { User } from '../types/user';
 import type { Desk } from '../types/desk';
-import type { ApiDesk, ApiEmployee, ApiLoginResponse, ApiMessage } from '../types/api';
+import type { ApiDesk, ApiEmployee, ApiLoginResponse, ApiMessage, ApiTicket } from '../types/api';
 
 
 
@@ -143,4 +143,15 @@ export async function detectDesk(beaconName: string, userId: string): Promise<Ap
         method: 'POST',
         body: JSON.stringify({ beaconName, userId }),
     });
+}
+
+export async function reportProblem(title: string, description: string, employeeId: string, deskId: string) {
+  return request<ApiTicket>('/api/reports', {
+    method: 'POST',
+    body: JSON.stringify({ title, description_Text: description, employeeId, deskId }),
+  });
+}
+
+export async function getReports() {
+  return request<ApiTicket[]>('/api/reports');
 }
