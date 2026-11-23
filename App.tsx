@@ -14,6 +14,7 @@ import { BeaconScanner } from './src/services/beaconScanner';
 import * as SecureStore from 'expo-secure-store';
 import Registration from './src/screens/CreateProfileScreen';
 
+import { getUserDeskBeacon } from './src/services/api';
 
 const Stack = createNativeStackNavigator();
 
@@ -41,6 +42,23 @@ function RootNavigator() {
           );
           return;
         }
+
+        const beacon = await getUserDeskBeacon(user.id);
+        
+        if (!isActive) {
+          return;
+        }
+
+        if (!beacon) {
+          BeaconScanner.stopBackgroundScanning();
+          Alert.alert(
+            'No assigned desk',
+            'This user does not have a beacon to scan.',
+          );
+          return;
+        }
+
+        const beaconName = `SmartRise_${beacon.major}_${beacon.minor}`;
 
         const enteredSubscription = BeaconScanner.addListener(
           'beaconEntered',
@@ -71,6 +89,7 @@ function RootNavigator() {
           return;
         }
         BeaconScanner.startBackgroundScanning({
+          beaconName,
           reportUrl: process.env.EXPO_PUBLIC_BEACON_REPORT_URL,
           authToken,
         });
@@ -79,6 +98,7 @@ function RootNavigator() {
           enteredSubscription.remove();
           exitedSubscription.remove();
           errorSubscription.remove();
+          BeaconScanner.stopBackgroundScanning();
         };
       })
       .catch(() => {

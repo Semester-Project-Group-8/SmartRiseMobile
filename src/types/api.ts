@@ -34,3 +34,8 @@ export type ApiLoginResponse = {
 export type ApiMessage = {
   message: string;
 };
+
+export type ApiBeaconAssignment = {
+  major: number;
+  minor: number;
+};

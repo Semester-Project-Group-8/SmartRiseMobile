@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat
 
 class BeaconScanService : Service() {
     private var scanCallback: ScanCallback? = null
+    private var beaconName: String? = null
     private lateinit var reporter: BeaconReporter
     private val trackedBeacons = mutableMapOf<String, TrackedBeacon>()
     private val handler = android.os.Handler(android.os.Looper.getMainLooper())
@@ -80,6 +81,19 @@ class BeaconScanService : Service() {
             return START_NOT_STICKY
         }
 
+        val nextBeaconName = intent?.getStringExtra(EXTRA_BEACON_NAME)
+
+        if (nextBeaconName.isNullOrBlank()) {
+            Log.w(TAG, "No beacon name configured.")
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
+        if (scanCallback != null && beaconName != nextBeaconName) {
+            stopScanning()
+        }
+
+        beaconName = nextBeaconName
         startScanning()
         return START_STICKY
     }
@@ -95,6 +109,14 @@ class BeaconScanService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun startScanning() {
+        
+        val expectedName = beaconName
+        if (expectedName.isNullOrBlank()) {
+            Log.w(TAG, "No beacon name configured.")
+            stopSelf()
+            return
+        }
+        
         if (scanCallback != null) {
             return
         }
@@ -116,7 +138,7 @@ class BeaconScanService : Service() {
         }
 
         val filter = ScanFilter.Builder()
-            .setDeviceName("SmartRise")
+            .setDeviceName(expectedName)
             .build()
         val settings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
@@ -162,6 +184,11 @@ class BeaconScanService : Service() {
         val address = result.device.address
         val now = System.currentTimeMillis()
         val trackedBeacon = trackedBeacons[address]
+        val detectedName = result.scanRecord?.deviceName ?: result.device.name
+
+        if (detectedName != beaconName) {
+            return
+        }
 
         if (trackedBeacon == null) {
             Log.d(TAG, "SmartRise entered range: $address, RSSI ${result.rssi}")
@@ -266,5 +293,6 @@ class BeaconScanService : Service() {
         private const val NOTIFICATION_ID = 1001
         private const val TAG = "BeaconScanService"
         private const val BEACON_LOST_TIMEOUT_MS = 5000L
+        const val EXTRA_BEACON_NAME = "extra_beacon_name"
     }
 }
