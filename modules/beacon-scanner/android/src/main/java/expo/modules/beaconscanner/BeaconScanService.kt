@@ -22,8 +22,10 @@ import androidx.core.content.ContextCompat
 
 class BeaconScanService : Service() {
     private var scanCallback: ScanCallback? = null
+    private var beaconName: String? = null
     private lateinit var reporter: BeaconReporter
     private val trackedBeacons = mutableMapOf<String, TrackedBeacon>()
+    private val pendingFinalExits = mutableMapOf<String, PendingFinalExit>()
     private val handler = android.os.Handler(android.os.Looper.getMainLooper())
     private val expireBeaconsRunnable = object : Runnable {
         override fun run() {
@@ -80,6 +82,19 @@ class BeaconScanService : Service() {
             return START_NOT_STICKY
         }
 
+        val nextBeaconName = intent?.getStringExtra(EXTRA_BEACON_NAME)
+
+        if (nextBeaconName.isNullOrBlank()) {
+            Log.w(TAG, "No beacon name configured.")
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
+        if (scanCallback != null && beaconName != nextBeaconName) {
+            stopScanning()
+        }
+
+        beaconName = nextBeaconName
         startScanning()
         return START_STICKY
     }
@@ -87,7 +102,6 @@ class BeaconScanService : Service() {
     override fun onDestroy() {
         stopScanning()
         handler.removeCallbacks(expireBeaconsRunnable)
-        trackedBeacons.clear()
         reporter.shutdown()
         super.onDestroy()
     }
@@ -95,6 +109,14 @@ class BeaconScanService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun startScanning() {
+        
+        val expectedName = beaconName
+        if (expectedName.isNullOrBlank()) {
+            Log.w(TAG, "No beacon name configured.")
+            stopSelf()
+            return
+        }
+        
         if (scanCallback != null) {
             return
         }
@@ -116,7 +138,7 @@ class BeaconScanService : Service() {
         }
 
         val filter = ScanFilter.Builder()
-            .setDeviceName("SmartRise")
+            .setDeviceName(expectedName)
             .build()
         val settings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
@@ -156,46 +178,80 @@ class BeaconScanService : Service() {
         }
         scanCallback = null
         trackedBeacons.clear()
+        pendingFinalExits.clear()
     }
 
     private fun handleBeaconDetected(result: ScanResult) {
         val address = result.device.address
         val now = System.currentTimeMillis()
         val trackedBeacon = trackedBeacons[address]
+        val expectedName = beaconName?.takeIf { it.isNotBlank() } ?: return
+        val detectedName = result.scanRecord?.deviceName ?: result.device.name
 
-        if (trackedBeacon == null) {
+        if (detectedName != expectedName) {
+            return
+        }
+        
+        if (trackedBeacon != null) {
+            trackedBeacon.lastSeenAt = now
+            trackedBeacon.rssi = result.rssi
+            return
+        }
+        
+        val pendingExit = pendingFinalExits.remove(address)
+        val beacon = if (pendingExit != null) {
+            Log.d(TAG, "SmartRise returned before final exit: $address")
+            TrackedBeacon(
+                name = pendingExit.name,
+                address = address,
+                rssi = result.rssi,
+                lastSeenAt = now,
+            )
+        } else {
             Log.d(TAG, "SmartRise entered range: $address, RSSI ${result.rssi}")
-            val beacon = TrackedBeacon(
+            TrackedBeacon(
                 name = result.device.name ?: "SmartRise",
                 address = address,
                 rssi = result.rssi,
                 lastSeenAt = now,
             )
-            trackedBeacons[address] = beacon
-            BeaconEventBus.emit(
-                "beaconEntered",
-                beacon.toEvent(),
-            )
-            reporter.report("entered", beacon.name, beacon.address, beacon.rssi)
-            updateNotification()
-        } else {
-            trackedBeacon.lastSeenAt = now
-            trackedBeacon.rssi = result.rssi
         }
+            trackedBeacons[address] = beacon
+            
+            if (pendingExit == null) {
+                BeaconEventBus.emit("beaconEntered", beacon.toEvent())
+                reporter.report("entered", beacon.name, beacon.address, beacon.rssi)
+            }
+            updateNotification()
     }
 
     private fun expireBeacons() {
-        val cutoff = System.currentTimeMillis() - BEACON_LOST_TIMEOUT_MS
         val iterator = trackedBeacons.iterator()
         var changed = false
+        val now = System.currentTimeMillis()
+        val cutoff = now - BEACON_LOST_TIMEOUT_MS
 
         while (iterator.hasNext()) {
-            val (_, beacon) = iterator.next()
+            val (address, beacon) = iterator.next()
             if (beacon.lastSeenAt < cutoff) {
                 Log.d(TAG, "SmartRise left range: ${beacon.address}")
                 iterator.remove()
-                BeaconEventBus.emit("beaconExited", beacon.toEvent())
-                reporter.report("exited", beacon.name, beacon.address, beacon.rssi)
+                pendingFinalExits[address] = PendingFinalExit(
+                    name = beacon.name,
+                    address = beacon.address,
+                    rssi = beacon.rssi,
+                    leftAt = now,
+                )
+                changed = true
+            }
+        }
+        val pendingIterator = pendingFinalExits.iterator()
+        while (pendingIterator.hasNext()) {
+            val (address, pendingExit) = pendingIterator.next()
+            if (pendingExit.leftAt < now - BEACON_FINAL_EXIT_TIMEOUT_MS) {
+                pendingIterator.remove()
+                BeaconEventBus.emit("beaconExited", pendingExit.toEvent())
+                reporter.report("exited", pendingExit.name, pendingExit.address, pendingExit.rssi)
                 changed = true
             }
         }
@@ -258,6 +314,19 @@ class BeaconScanService : Service() {
             "rssi" to rssi,
         )
     }
+    
+    private data class PendingFinalExit(
+        val name: String,
+        val address: String,
+        var rssi: Int,
+        var leftAt: Long,
+    ) {
+        fun toEvent(): Map<String, Any> = mapOf(
+            "name" to name,
+            "address" to address,
+            "rssi" to rssi,
+        )
+    }
 
     companion object {
         const val ACTION_START = "expo.modules.beaconscanner.action.START"
@@ -266,5 +335,7 @@ class BeaconScanService : Service() {
         private const val NOTIFICATION_ID = 1001
         private const val TAG = "BeaconScanService"
         private const val BEACON_LOST_TIMEOUT_MS = 5000L
+        const val EXTRA_BEACON_NAME = "extra_beacon_name"
+        private const val BEACON_FINAL_EXIT_TIMEOUT_MS = 60 * 60 * 1000L
     }
 }

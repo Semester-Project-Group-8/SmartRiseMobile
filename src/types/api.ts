@@ -35,6 +35,10 @@ export type ApiMessage = {
   message: string;
 };
 
+export type ApiBeaconAssignment = {
+  major: number;
+  minor: number;
+  
 export type ApiTicket = {
   id: string;
   title: string;
