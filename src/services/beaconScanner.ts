@@ -11,6 +11,7 @@ export type ScanErrorEvent = {
 };
 
 export type StartScanningOptions = {
+  beaconName?: string;
   reportUrl?: string;
   authToken?: string;
 };
