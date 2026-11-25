@@ -35,6 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Safety net in case the backend still issues a token to unapproved accounts.
             if (found.approval !== 'approved') {
                 throw new Error(approvalMessage(found.approval));
+            }
             if (found.role === 'admin') {
                 throw new Error('Admins should use the web app.');
             }
