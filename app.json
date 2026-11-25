@@ -9,6 +9,7 @@
       "expo-secure-store",
       "./plugins/withLocalCmake",
       "@react-native-community/datetimepicker"
+      "@react-native-vector-icons/ionicons"
     ],
     "android": {
       "package": "com.anonymous.myApp2",

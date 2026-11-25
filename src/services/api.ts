@@ -98,20 +98,6 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
     return found ? toUser(found) : undefined;
 }
 
-export async function getPendingUsers(): Promise<User[]> {
-    const employees = await request<ApiEmployee[]>('/users/approval-pending');
-    return employees.map(toUser);
-}
-
-export async function approveUser(id: string): Promise<void> {
-    await request<ApiMessage>(`/users/${id}/approve`, { method: 'PATCH' });
-}
-
-
-export async function rejectUser(id: string): Promise<void> {
-    await request<ApiMessage>(`/users/${id}/reject`, { method: 'PATCH' });
-}
-
 export async function updatePresets(userId: string, presetValue: 'sit' | 'stand', preset: number): Promise<void> {
     checkHeight(preset);
     await request<ApiMessage>(`/users/${userId}/presets`, {
@@ -121,11 +107,6 @@ export async function updatePresets(userId: string, presetValue: 'sit' | 'stand'
 }
 
 
-
-export async function getDesks(): Promise<Desk[]> {
-    const desks = await request<ApiDesk[]>('/api/desks');
-    return desks.map(toDesk);
-}
 
 export async function getDeskById(id: string): Promise<Desk> {
     const desk = await request<ApiDesk>(`/api/desks/${id}`);

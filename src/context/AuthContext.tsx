@@ -17,7 +17,7 @@ const AuthContext = createContext<AuthContextType>({
     isLoading: true,
 });
 
-const ROLES = ['user', 'admin', 'cleaner'];
+const ROLES = ['user', 'cleaner'];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
@@ -35,6 +35,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Safety net in case the backend still issues a token to unapproved accounts.
             if (found.approval !== 'approved') {
                 throw new Error(approvalMessage(found.approval));
+            if (found.role === 'admin') {
+                throw new Error('Admins should use the web app.');
             }
             await SecureStore.setItemAsync("user", JSON.stringify(found));
             setUser(found);
