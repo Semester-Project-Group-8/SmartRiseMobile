@@ -45,5 +45,20 @@ export const loginStyles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 10,
-  }
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  passwordInput: {
+    flex: 1,          // takes all the space, leaving room for the icon
+    paddingVertical: 12,
+    color: "#000000"
+  },
+
 });
