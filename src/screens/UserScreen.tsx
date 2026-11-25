@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { userStyles } from '../styles/UserScreenStyle';
 import { getDeskById } from "../services/api";
 import type { Desk } from "../types/desk";
-
+import { BeaconScanner } from '../services/beaconScanner';
 import { useAuth } from '../context/AuthContext';
 import { usePresets } from '../context/PresetsContext';
 
@@ -28,6 +28,26 @@ export default function UserScreen() {
     const [desk, setDesk] = useState<Desk | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [isConnected, setIsConnected] = useState(false);
+
+    useEffect(() => {
+        setIsConnected(false);
+
+        const enteredSubscription = BeaconScanner.addListener(
+            'beaconEntered',
+            () => setIsConnected(true),
+        );
+
+        const exitedSubscription = BeaconScanner.addListener(
+            'beaconExited',
+            () => setIsConnected(false),
+        );
+
+        return () => {
+            enteredSubscription.remove();
+            exitedSubscription.remove();
+        };
+    }, [user?.id]);
 
     useEffect(() => {
         const loadDesk = async () => {
@@ -53,7 +73,7 @@ export default function UserScreen() {
             {loading && <ActivityIndicator />}
             {!loading && error !== '' && <Text>{error}</Text>}
             {!loading && error === '' && !desk && <Text>No desk assigned yet.</Text>}
-            {!loading && desk && <YourDesk desk={desk} />}
+            {!loading && desk && <YourDesk desk={desk} isConnected={isConnected}/>}
 
             <Text style={userStyles.PresetTextHeader}>Presets</Text>
             <Preset />
@@ -65,14 +85,14 @@ export default function UserScreen() {
     );
 }
 
-function YourDesk({ desk }: { desk: Desk }) {
+function YourDesk({ desk, isConnected }: { desk: Desk; isConnected: boolean }) {
     return (
         <View style={userStyles.DeskView}>
             <View style={userStyles.deskHeader}>
                 <Text style={userStyles.CurrentDesk}>Your current desk</Text>
                 <View style={userStyles.ButtonConnect}>
                     <Text style={userStyles.connectText}>
-                        {desk.isConnected ? 'Connected' : 'Disconnected'}
+                        {isConnected ? 'Connected' : 'Disconnected'}
                     </Text>
                 </View>
             </View>
