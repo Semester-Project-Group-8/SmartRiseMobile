@@ -144,11 +144,11 @@ export async function unassignDesk(deskId: string, userId: string): Promise<void
     });
 }
 
-export async function detectDesk(beaconName: string, userId: string): Promise<ApiMessage> {
-    return request<ApiMessage>('/api/desks/Detect', {
-        method: 'POST',
-        body: JSON.stringify({ beaconName, userId }),
-    });
+export async function detectDesk(state: 'entered' | 'exited'): Promise<ApiMessage> {
+  return request<ApiMessage>('/api/desks/detect', {
+    method: 'POST',
+    body: JSON.stringify(state),
+  });
 }
 
 export async function getUserDeskBeacon(userId: string): Promise<ApiBeaconAssignment | null> {

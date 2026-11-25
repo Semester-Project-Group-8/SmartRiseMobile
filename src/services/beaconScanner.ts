@@ -11,13 +11,11 @@ export type ScanErrorEvent = {
 };
 
 export type StartScanningOptions = {
-  beaconName?: string;
-  reportUrl?: string;
-  authToken?: string;
+  beaconName: string;
 };
 
 type BeaconScannerModuleType = {
-  startBackgroundScanning(options?: StartScanningOptions): void;
+  startBackgroundScanning(options: StartScanningOptions): void;
   stopBackgroundScanning(): void;
   addListener(
     eventName: 'beaconEntered' | 'beaconExited',

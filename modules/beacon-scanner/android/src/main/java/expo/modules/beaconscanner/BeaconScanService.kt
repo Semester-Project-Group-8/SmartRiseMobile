@@ -23,7 +23,6 @@ import androidx.core.content.ContextCompat
 class BeaconScanService : Service() {
     private var scanCallback: ScanCallback? = null
     private var beaconName: String? = null
-    private lateinit var reporter: BeaconReporter
     private val trackedBeacons = mutableMapOf<String, TrackedBeacon>()
     private val pendingFinalExits = mutableMapOf<String, PendingFinalExit>()
     private val handler = android.os.Handler(android.os.Looper.getMainLooper())
@@ -36,7 +35,6 @@ class BeaconScanService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        reporter = BeaconReporter(this)
         createNotificationChannel()
         try {
             ServiceCompat.startForeground(
@@ -102,7 +100,6 @@ class BeaconScanService : Service() {
     override fun onDestroy() {
         stopScanning()
         handler.removeCallbacks(expireBeaconsRunnable)
-        reporter.shutdown()
         super.onDestroy()
     }
 
@@ -220,7 +217,6 @@ class BeaconScanService : Service() {
             
             if (pendingExit == null) {
                 BeaconEventBus.emit("beaconEntered", beacon.toEvent())
-                reporter.report("entered", beacon.name, beacon.address, beacon.rssi)
             }
             updateNotification()
     }
@@ -251,7 +247,6 @@ class BeaconScanService : Service() {
             if (pendingExit.leftAt < now - BEACON_FINAL_EXIT_TIMEOUT_MS) {
                 pendingIterator.remove()
                 BeaconEventBus.emit("beaconExited", pendingExit.toEvent())
-                reporter.report("exited", pendingExit.name, pendingExit.address, pendingExit.rssi)
                 changed = true
             }
         }
