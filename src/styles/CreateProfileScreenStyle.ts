@@ -12,7 +12,6 @@ export const CreateProfileStyle = StyleSheet.create({
         backgroundColor: 'white',
     },
 
-    // "Request sent!" view: centred slightly above the true middle so it looks centred under the nav bar.
     SuccessContainer: {
         flexGrow: 1,
         justifyContent: 'center',
