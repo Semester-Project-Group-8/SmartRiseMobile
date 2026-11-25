@@ -17,7 +17,7 @@ const AuthContext = createContext<AuthContextType>({
     isLoading: true,
 });
 
-const ROLES = ['user', 'admin', 'cleaner'];
+const ROLES = ['user', 'cleaner'];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
@@ -31,6 +31,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const found = await getUserByEmail(email);
             if (!found) {
                 throw new Error("Logged in, but your profile wasn't found.");
+            }
+            if (found.role === 'admin') {
+                throw new Error('Admins should use the web app.');
             }
             await SecureStore.setItemAsync("user", JSON.stringify(found));
             setUser(found);
