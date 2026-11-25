@@ -1,7 +1,7 @@
 import { request, ApiError } from './request';
-import type { User } from '../types/user';
+import type { Status, User } from '../types/user';
 import type { Desk } from '../types/desk';
-import type { ApiDesk, ApiEmployee, ApiLoginResponse, ApiMessage } from '../types/api';
+import type { ApiCreateEmployeeRequest, ApiDesk, ApiEmployee, ApiLoginResponse, ApiMessage } from '../types/api';
 
 
 
@@ -14,13 +14,26 @@ function toUser(employee: ApiEmployee): User {
         surname: rest.join(' '),
         email: employee.email,
         dateOfBirth: employee.dateOfBirth,
-        height: 0,
+        height: employee.height ?? 0,
         sitPreset: employee.desk ? employee.desk.preferredHeight : null,
         standPreset: null,
         role: employee.role === 'cleaner' ? 'cleaner' : employee.role === 'admin' ? 'admin' : 'user',
-        approval: employee.accountStatus === 'active' ? 'approved' : 'pending',
+        approval: toApproval(employee.accountStatus),
         assignedDeskID: employee.desk ? employee.desk.id : null,
     };
+}
+
+function toApproval(accountStatus: string): Status {
+    const status = accountStatus?.toLowerCase();
+    if (status === 'active') return 'approved';
+    if (status === 'rejected') return 'rejected';
+    return 'pending';
+}
+
+export function approvalMessage(approval: Status): string {
+    return approval === 'rejected'
+        ? 'Your registration was rejected. Please contact your admin.'
+        : 'Your account is waiting for admin approval. You can log in once it is approved.';
 }
 
 function toDesk(desk: ApiDesk): Desk {
@@ -52,10 +65,22 @@ export async function login(email: string, password: string): Promise<string> {
         if (error instanceof ApiError && (error.status === 400 || error.status === 401)) {
             throw new Error('Wrong email or password');
         }
+        if (error instanceof ApiError && error.status === 403) {
+            throw new Error(error.message.startsWith('Request failed')
+                ? approvalMessage('pending')
+                : error.message);
+        }
         throw error;
     }
 }
 
+
+export async function createUser(data: ApiCreateEmployeeRequest): Promise<void> {
+    await request<ApiEmployee>('/users/employee', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+}
 
 export async function getUsers(): Promise<User[]> {
     const employees = await request<ApiEmployee[]>('/users');

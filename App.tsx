@@ -12,6 +12,8 @@ import { PresetsProvider } from './src/context/PresetsContext';
 import { requestBluetoothPermissions } from './src/services/bluetoothPermissions';
 import { BeaconScanner } from './src/services/beaconScanner';
 import * as SecureStore from 'expo-secure-store';
+import Registration from './src/screens/CreateProfileScreen';
+
 
 const Stack = createNativeStackNavigator();
 

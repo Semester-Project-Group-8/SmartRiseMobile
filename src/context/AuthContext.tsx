@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import * as SecureStore from 'expo-secure-store';
-import { login as apiLogin, getUserByEmail } from '../services/api';
+import { login as apiLogin, getUserByEmail, approvalMessage } from '../services/api';
 import type { User } from '../types/user';
 
 type AuthContextType = {
@@ -32,6 +32,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (!found) {
                 throw new Error("Logged in, but your profile wasn't found.");
             }
+            // Safety net in case the backend still issues a token to unapproved accounts.
+            if (found.approval !== 'approved') {
+                throw new Error(approvalMessage(found.approval));
             if (found.role === 'admin') {
                 throw new Error('Admins should use the web app.');
             }

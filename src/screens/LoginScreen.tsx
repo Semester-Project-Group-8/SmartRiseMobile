@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { View, Text, TextInput, Pressable, Keyboard, type TextInputInstance } from "react-native";
 import { loginStyles } from '../styles/LoginScreenStyle';
 import { useAuth } from '../context/AuthContext';
+import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from '@react-native-vector-icons/ionicons';
 
 function Header() {
@@ -87,11 +88,27 @@ export default function LoginScreen() {
       <Pressable style={loginStyles.button} onPress={handleLogin} disabled={loading}>
         <Text style={loginStyles.buttonText}>{loading ? 'Logging in...' : 'Login'}</Text>
       </Pressable>
+      <Register></Register>
       <Footer></Footer>
     </Pressable>
 
   );
 
+}
+function Register() {
+  const navigation = useNavigation<any>();
+  return (
+    <View style={loginStyles.registerView}>
+      <Text style={loginStyles.registerText}>Don&apos;t have an account yet?</Text>
+      <Pressable hitSlop={8} onPress={() => navigation.navigate('CreateProfile')}>
+        {({ pressed }) => (
+          <Text style={[loginStyles.registerLink, pressed && loginStyles.registerLinkPressed]}>
+            Register
+          </Text>
+        )}
+      </Pressable>
+    </View>
+  )
 }
 
 function Footer() {
