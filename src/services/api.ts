@@ -150,3 +150,14 @@ export async function detectDesk(beaconName: string, userId: string): Promise<Ap
         body: JSON.stringify({ beaconName, userId }),
     });
 }
+
+export async function reportProblem(title: string, description: string, employeeId: string, deskId: string) {
+  return request<ApiTicket>('/api/reports', {
+    method: 'POST',
+    body: JSON.stringify({ title, description_Text: description, employeeId, deskId }),
+  });
+}
+
+export async function getReports() {
+  return request<ApiTicket[]>('/api/reports');
+}
