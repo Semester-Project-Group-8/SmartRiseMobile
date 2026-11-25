@@ -13,6 +13,9 @@ class StartOptions : Record {
 
     @Field
     val authToken: String? = null
+    
+    @Field
+    val beaconName: String? = null
 }
 
 class BeaconScannerModule : Module() {
@@ -28,6 +31,7 @@ class BeaconScannerModule : Module() {
             BeaconReporter.saveConfig(context, options?.reportUrl, options?.authToken)
             val intent = Intent(context, BeaconScanService::class.java).apply {
                 action = BeaconScanService.ACTION_START
+                putExtra(BeaconScanService.EXTRA_BEACON_NAME, options?.beaconName)
             }
 
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
