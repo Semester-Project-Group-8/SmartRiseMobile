@@ -12,10 +12,8 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { PresetsProvider } from './src/context/PresetsContext';
 import { requestBluetoothPermissions } from './src/services/bluetoothPermissions';
 import { BeaconScanner } from './src/services/beaconScanner';
-import * as SecureStore from 'expo-secure-store';
 import Registration from './src/screens/CreateProfileScreen';
-
-import { getUserDeskBeacon } from './src/services/api';
+import { getUserDeskBeacon, detectDesk } from './src/services/api';
 
 const Stack = createNativeStackNavigator();
 
@@ -65,6 +63,12 @@ function RootNavigator() {
           'beaconEntered',
           (beacon) => {
             console.log('Beacon entered range:', beacon);
+            void detectDesk('entered').catch((error: unknown) => {
+              console.error('Failed to report beacon entry:', error);
+              if (isActive) {
+                Alert.alert('Beacon update failed', 'Could not report the entry to the server.');
+              }
+            });
           },
         );
 
@@ -72,6 +76,12 @@ function RootNavigator() {
           'beaconExited',
           (beacon) => {
             console.log('Beacon left range:', beacon);
+            void detectDesk('exited').catch((error: unknown) => {
+              console.error('Failed to report beacon exit:', error);
+              if (isActive) {
+                Alert.alert('Beacon update failed', 'Could not report the exit to the server.');
+              }
+            });
           },
         );
 
@@ -82,7 +92,6 @@ function RootNavigator() {
           },
         );
 
-        const authToken = (await SecureStore.getItemAsync('token')) ?? undefined;
         if (!isActive) {
           enteredSubscription.remove();
           exitedSubscription.remove();
@@ -91,8 +100,6 @@ function RootNavigator() {
         }
         BeaconScanner.startBackgroundScanning({
           beaconName,
-          reportUrl: process.env.EXPO_PUBLIC_BEACON_REPORT_URL,
-          authToken,
         });
 
         cleanupSubscriptions = () => {
