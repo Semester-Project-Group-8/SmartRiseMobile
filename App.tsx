@@ -8,10 +8,6 @@ import CleanerScreen from './src/screens/CleanerScreen';
 import UserProfileScreen from './src/screens/UserProfileScreen';
 import UserProfileInformation from './src/screens/UserProfileInformationScreen';
 import Report from './src/screens/ReportProblemScreen';
-import AllDesks from './src/screens/AdminAllDesksScreen';
-import Reported from './src/screens/AdminReportedScreen';
-import NewUsers from './src/screens/AdminNewUsersScreen';
-import AdminProfile from './src/screens/AdminProfileScreen';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { PresetsProvider } from './src/context/PresetsContext';
 import { requestBluetoothPermissions } from './src/services/bluetoothPermissions';
@@ -137,7 +133,16 @@ function RootNavigator() {
 
   let screen;
   if (!user) {
-    screen = <Stack.Screen name="Login" component={LoginScreen} />;
+    screen = (
+      <>
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen
+          name="CreateProfile"
+          component={Registration}
+          options={{ headerShown: true, title: 'Create Profile' }}
+        />
+      </>
+    );
   } else if (user.role === 'cleaner') {
     screen = <Stack.Screen name="Cleaner" component={CleanerScreen} />;
   } else {
