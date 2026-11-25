@@ -9,12 +9,6 @@ import expo.modules.kotlin.records.Record
 
 class StartOptions : Record {
     @Field
-    val reportUrl: String? = null
-
-    @Field
-    val authToken: String? = null
-    
-    @Field
     val beaconName: String? = null
 }
 
@@ -28,7 +22,6 @@ class BeaconScannerModule : Module() {
         Function("startBackgroundScanning") { options: StartOptions? ->
             val context = appContext.reactContext
                 ?: throw IllegalStateException("Android context is unavailable.")
-            BeaconReporter.saveConfig(context, options?.reportUrl, options?.authToken)
             val intent = Intent(context, BeaconScanService::class.java).apply {
                 action = BeaconScanService.ACTION_START
                 putExtra(BeaconScanService.EXTRA_BEACON_NAME, options?.beaconName)
@@ -45,7 +38,6 @@ class BeaconScannerModule : Module() {
             val context = appContext.reactContext
                 ?: throw IllegalStateException("Android context is unavailable.")
             context.stopService(Intent(context, BeaconScanService::class.java))
-            BeaconReporter.clearConfig(context)
         }
 
         OnCreate {
