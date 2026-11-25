@@ -155,4 +155,13 @@ export async function getUserDeskBeacon(userId: string): Promise<ApiBeaconAssign
   return request<ApiBeaconAssignment | null>(
     `/users/${encodeURIComponent(userId)}/desk`,
   );
+export async function reportProblem(title: string, description: string, employeeId: string, deskId: string) {
+  return request<ApiTicket>('/api/reports', {
+    method: 'POST',
+    body: JSON.stringify({ title, description_Text: description, employeeId, deskId }),
+  });
+}
+
+export async function getReports() {
+  return request<ApiTicket[]>('/api/reports');
 }

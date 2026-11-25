@@ -7,6 +7,11 @@ import UserScreen from './src/screens/UserScreen';
 import CleanerScreen from './src/screens/CleanerScreen';
 import UserProfileScreen from './src/screens/UserProfileScreen';
 import UserProfileInformation from './src/screens/UserProfileInformationScreen';
+import Report from './src/screens/ReportProblemScreen';
+import AllDesks from './src/screens/AdminAllDesksScreen';
+import Reported from './src/screens/AdminReportedScreen';
+import NewUsers from './src/screens/AdminNewUsersScreen';
+import AdminProfile from './src/screens/AdminProfileScreen';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { PresetsProvider } from './src/context/PresetsContext';
 import { requestBluetoothPermissions } from './src/services/bluetoothPermissions';
@@ -148,6 +153,11 @@ function RootNavigator() {
           name="Information"
           component={UserProfileInformation}
           options={{ headerShown: true, title: 'Information' }}
+        />
+        <Stack.Screen
+          name="Report"
+          component={Report}
+          options={{ headerShown: true, title: 'Report Problem' }}
         />
       </>
     );

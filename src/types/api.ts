@@ -38,4 +38,12 @@ export type ApiMessage = {
 export type ApiBeaconAssignment = {
   major: number;
   minor: number;
+  
+export type ApiTicket = {
+  id: string;
+  title: string;
+  description_Text: string;
+  reportTime: string;
+  employeeId: string | null;
+  deskId: string;
 };

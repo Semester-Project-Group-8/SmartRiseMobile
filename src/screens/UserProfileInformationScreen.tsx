@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { UserInfoScreenStyle } from '../styles/UserInformationScreenStyle';
-
+import { useNavigation } from "@react-navigation/native";
 const steps = [
     { title: 'Walk up to your desk', text: 'The beacon on the desk notices your phone and connects automatically.' },
     { title: 'Your desk gets ready', text: 'It moves to your preferred height, using your Sit preset.' },
@@ -100,13 +100,14 @@ function Troubleshooting() {
 }
 
 function ContactAdmin() {
+    const navigation = useNavigation<any>();
     return (
         <View style={UserInfoScreenStyle.contactBox}>
             <Text style={UserInfoScreenStyle.contactTitle}>Still not working?</Text>
             <Text style={UserInfoScreenStyle.contactText}>
                 Contact your admin and tell them your desk number and what happened.
             </Text>
-            <Pressable style={UserInfoScreenStyle.contactButton} onPress={() => console.log('Report a problem')}>
+            <Pressable style={UserInfoScreenStyle.contactButton} onPress={() => navigation.navigate('Report')}>
                 <Text style={UserInfoScreenStyle.contactButtonText}>Report a problem</Text>
             </Pressable>
         </View>
