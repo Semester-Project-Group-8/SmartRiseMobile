@@ -38,7 +38,8 @@ export type ApiMessage = {
 export type ApiBeaconAssignment = {
   major: number;
   minor: number;
-  
+};
+
 export type ApiTicket = {
   id: string;
   title: string;

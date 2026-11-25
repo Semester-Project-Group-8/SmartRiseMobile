@@ -76,8 +76,8 @@ export default function Registration() {
 
     if (submitted) {
         return (
-            <ScrollView contentContainerStyle={CreateProfileStyle.Container}>
-                <View style={CreateProfileStyle.Header}>
+            <ScrollView contentContainerStyle={CreateProfileStyle.SuccessContainer}>
+                <View style={CreateProfileStyle.SuccessHeader}>
                     <Text style={CreateProfileStyle.HeaderWelcomeText}>Request sent!</Text>
                     <Text style={CreateProfileStyle.HeaderText}>
                         An admin will review your registration. You can log in once your account is approved.

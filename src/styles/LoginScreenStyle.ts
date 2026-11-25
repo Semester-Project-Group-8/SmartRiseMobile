@@ -66,6 +66,7 @@ export const loginStyles = StyleSheet.create({
   },
   registerLinkPressed: {
     opacity: 0.6,
+  },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
