@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { View, Text, TextInput, Pressable } from "react-native";
+import { useRef, useState } from "react";
+import { View, Text, TextInput, Pressable, Keyboard, type TextInputInstance } from "react-native";
 import { loginStyles } from '../styles/LoginScreenStyle';
 import { useAuth } from '../context/AuthContext';
+import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from '@react-native-vector-icons/ionicons';
 
 function Header() {
   return (
@@ -21,9 +23,13 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [errormessage, setErrormessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
-  
+  const passwordRef = useRef<TextInputInstance>(null);
+
   const handleLogin = async () => {
+    if (loading) return;
+    Keyboard.dismiss();
     setErrormessage("");
     setLoading(true);
     try {
@@ -36,7 +42,7 @@ export default function LoginScreen() {
     }
   };
   return (
-    <View style={loginStyles.container}>
+    <Pressable style={loginStyles.container} onPress={Keyboard.dismiss} accessible={false}>
       <Header></Header>
       <TextInput
         style={loginStyles.input}
@@ -46,25 +52,63 @@ export default function LoginScreen() {
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
+        returnKeyType="next"
+        submitBehavior="submit"
+        onSubmitEditing={() => passwordRef.current?.focus()}
       />
-      <TextInput
-        style={loginStyles.input}
-        placeholder="Enter your Password"
-        placeholderTextColor="#9ca3af"
-        autoCapitalize="none"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      
+      <View style={loginStyles.passwordContainer}>
+        <TextInput
+          ref={passwordRef}
+          style={loginStyles.passwordInput}
+          placeholder="Enter your Password"
+          placeholderTextColor="#9ca3af"
+          autoCapitalize="none"
+          secureTextEntry={!showPassword}
+          value={password}
+          onChangeText={setPassword}
+          returnKeyType="go"
+          onSubmitEditing={handleLogin}
+        />
+        <Pressable
+          onPress={() => setShowPassword(prev => !prev)}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+        >
+          <Ionicons
+            name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+            size={22}
+            color="#6b7280"
+          />
+        </Pressable>
+      </View>
+
       {errormessage !== '' && <Text style={loginStyles.errorText}>{errormessage}</Text>}
       <Pressable style={loginStyles.button} onPress={handleLogin} disabled={loading}>
         <Text style={loginStyles.buttonText}>{loading ? 'Logging in...' : 'Login'}</Text>
       </Pressable>
+      <Register></Register>
       <Footer></Footer>
-    </View>
+    </Pressable>
 
   );
 
+}
+function Register() {
+  const navigation = useNavigation<any>();
+  return (
+    <View style={loginStyles.registerView}>
+      <Text style={loginStyles.registerText}>Don&apos;t have an account yet?</Text>
+      <Pressable hitSlop={8} onPress={() => navigation.navigate('CreateProfile')}>
+        {({ pressed }) => (
+          <Text style={[loginStyles.registerLink, pressed && loginStyles.registerLinkPressed]}>
+            Register
+          </Text>
+        )}
+      </Pressable>
+    </View>
+  )
 }
 
 function Footer() {

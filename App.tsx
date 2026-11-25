@@ -4,7 +4,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from './src/screens/LoginScreen';
 import UserScreen from './src/screens/UserScreen';
-import AdminScreen from './src/screens/AdminScreen';
 import CleanerScreen from './src/screens/CleanerScreen';
 import UserProfileScreen from './src/screens/UserProfileScreen';
 import UserProfileInformation from './src/screens/UserProfileInformationScreen';
@@ -18,6 +17,8 @@ import { PresetsProvider } from './src/context/PresetsContext';
 import { requestBluetoothPermissions } from './src/services/bluetoothPermissions';
 import { BeaconScanner } from './src/services/beaconScanner';
 import * as SecureStore from 'expo-secure-store';
+import Registration from './src/screens/CreateProfileScreen';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -117,32 +118,6 @@ function RootNavigator() {
   let screen;
   if (!user) {
     screen = <Stack.Screen name="Login" component={LoginScreen} />;
-  } else if (user.role === 'admin') {
-    screen = (
-      <>
-        <Stack.Screen name="Admin" component={AdminScreen} />
-        <Stack.Screen
-          name="AdminProfile"
-          component={AdminProfile}
-          options={{ headerShown: true, title: 'Profile' }}
-        />
-        <Stack.Screen
-          name="Reported"
-          component={Reported}
-          options={{ headerShown: true, title: 'Reported Issues' }}
-        />
-        <Stack.Screen
-          name="New Users"
-          component={NewUsers}
-          options={{ headerShown: true, title: 'New Users Requests' }}
-        />
-        <Stack.Screen
-          name="All Desks"
-          component={AllDesks}
-          options={{ headerShown: true, title: 'All Desks' }}
-        />
-      </>
-    );
   } else if (user.role === 'cleaner') {
     screen = <Stack.Screen name="Cleaner" component={CleanerScreen} />;
   } else {

@@ -11,10 +11,20 @@ export type ApiEmployee = {
   id: string;
   name: string;
   email: string;
+  height: number;
   dateOfBirth: string;
   accountStatus: string;
   role: string;
   desk: ApiDesk | null;
+};
+
+export type ApiCreateEmployeeRequest = {
+  name: string;
+  email: string;
+  passwordHash: string; 
+  dateOfBirth: string; 
+  phone: string;
+  height: number; 
 };
 
 export type ApiLoginResponse = {
